@@ -127,13 +127,14 @@ internal fun Route.getRunsWithPackage(searchService: SearchService) =
 
         // parseScope() throws QueryParametersException if multiple scope parameters are provided
         val scope = call.parseScope()
-        val userId = requirePrincipal().username
+        val principal = requirePrincipal()
 
         val ortRuns = searchService.findOrtRunsByPackage(
             identifier = identifierParam,
             purl = purlParam,
-            userId = userId,
-            scope = scope
+            userId = principal.username,
+            scope = scope,
+            userSub = principal.userId
         )
         call.respond(HttpStatusCode.OK, ortRuns)
     }

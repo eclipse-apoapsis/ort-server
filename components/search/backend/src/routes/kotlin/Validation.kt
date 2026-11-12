@@ -91,13 +91,15 @@ fun requireScopedReadPermission(): AuthorizationChecker =
         override suspend fun loadEffectiveRole(
             service: AuthorizationService,
             userId: String,
+            userSub: String,
             call: ApplicationCall
         ): EffectiveRole? = when (val scope = call.parseScope()) {
             is RepositoryId -> {
                 service.checkPermissions(
                     userId,
                     scope,
-                    HierarchyPermissions.permissions(RepositoryPermission.READ)
+                    HierarchyPermissions.permissions(RepositoryPermission.READ),
+                    userSub
                 )
             }
 
@@ -105,7 +107,8 @@ fun requireScopedReadPermission(): AuthorizationChecker =
                 service.checkPermissions(
                     userId,
                     scope,
-                    HierarchyPermissions.permissions(ProductPermission.READ)
+                    HierarchyPermissions.permissions(ProductPermission.READ),
+                    userSub
                 )
             }
 
@@ -113,7 +116,8 @@ fun requireScopedReadPermission(): AuthorizationChecker =
                 service.checkPermissions(
                     userId,
                     scope,
-                    HierarchyPermissions.permissions(OrganizationPermission.READ)
+                    HierarchyPermissions.permissions(OrganizationPermission.READ),
+                    userSub
                 )
             }
 
@@ -122,7 +126,8 @@ fun requireScopedReadPermission(): AuthorizationChecker =
                 service.checkPermissions(
                     userId,
                     CompoundHierarchyId.WILDCARD,
-                    HierarchyPermissions.permissions(OrganizationRole.ADMIN)
+                    HierarchyPermissions.permissions(OrganizationRole.ADMIN),
+                    userSub
                 )?.takeIf { it.isSuperuser }
             }
         }

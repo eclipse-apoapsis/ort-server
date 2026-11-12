@@ -50,7 +50,7 @@ class GetRunsWithPackageAuthorizationTest : AbstractAuthorizationTest({
     beforeEach {
         hierarchyAuthorizationService = mockk {
             coEvery {
-                filterHierarchyIds(any(), any(), any(), any(), any())
+                filterHierarchyIds(any(), any(), any(), any(), any(), any())
             } returns HierarchyFilter.WILDCARD
         }
         searchService = SearchService(dbExtension.db, hierarchyAuthorizationService)

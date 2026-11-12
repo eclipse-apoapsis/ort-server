@@ -142,6 +142,7 @@ fun Route.runs() = route("runs") {
             override suspend fun loadEffectiveRole(
                 service: AuthorizationService,
                 userId: String,
+                userSub: String,
                 call: ApplicationCall
             ): EffectiveRole? {
                 val runId = call.requireIdParameter("runId")
@@ -150,7 +151,8 @@ fun Route.runs() = route("runs") {
                 return service.checkPermissions(
                     userId,
                     RepositoryId(ortRun.repositoryId),
-                    HierarchyPermissions.permissions(permission)
+                    HierarchyPermissions.permissions(permission),
+                    userSub
                 ).also {
                     // Store the current run, so that it is directly available to route handlers.
                     call.attributes.put(keyOrtRun, ortRun)

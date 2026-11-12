@@ -172,7 +172,8 @@ fun Route.products() = route("products/{productId}") {
                 productId,
                 principal.username,
                 pagingOptions.mapToModel(),
-                filter?.mapToModel()
+                filter?.mapToModel(),
+                principal.userId
             )
 
             val pagedResponse = repositoriesForProduct.mapToApi(Repository::mapToApi)
@@ -183,13 +184,15 @@ fun Route.products() = route("products/{productId}") {
         post(postRepository, requirePermission(ProductPermission.CREATE_REPOSITORY)) {
             val id = call.requireIdParameter("productId")
             val createRepository = call.receive<PostRepository>()
+            val principal = requirePrincipal()
             val repository = productService.createRepository(
                 createRepository.type.mapToModel(),
                 createRepository.url,
                 id,
                 createRepository.name,
                 createRepository.description,
-                requirePrincipal().username
+                principal.username,
+                principal.userId
             ).mapToApi()
 
             call.respond(
@@ -211,12 +214,18 @@ fun Route.products() = route("products/{productId}") {
                     return@put
                 }
 
-                if (!userService.userExists(user.username)) {
+                val userSub = userService.findUserId(user.username)
+                if (userSub == null) {
                     call.respondError(HttpStatusCode.NotFound, "Could not find user '${user.username}'.")
                     return@put
                 }
 
-                authorizationService.assignRole(user.username, role, call.ortServerPrincipal.effectiveRole.elementId)
+                authorizationService.assignRole(
+                    user.username,
+                    role,
+                    call.ortServerPrincipal.effectiveRole.elementId,
+                    userSub
+                )
                 call.respond(HttpStatusCode.NoContent)
             }
 
@@ -249,7 +258,8 @@ fun Route.products() = route("products/{productId}") {
 
             val repositoryIds = productService.getRepositoryIdsForProductAndUser(
                 productId,
-                call.ortServerPrincipal.username
+                call.ortServerPrincipal.username,
+                call.ortServerPrincipal.userId
             )
 
             val ortRunIds = repositoryIds.mapNotNull { repositoryId ->
@@ -271,7 +281,8 @@ fun Route.products() = route("products/{productId}") {
                 val productId = call.requireIdParameter("productId")
                 val repositoryIds = productService.getRepositoryIdsForProductAndUser(
                     productId,
-                    call.ortServerPrincipal.username
+                    call.ortServerPrincipal.username,
+                    call.ortServerPrincipal.userId
                 )
                 val ortRunIds = repositoryIds.mapNotNull { repositoryId ->
                     repositoryService.getLatestOrtRunIdWithSuccessfulAdvisorJob(repositoryId)
@@ -289,7 +300,8 @@ fun Route.products() = route("products/{productId}") {
 
                 val repositoryIds = productService.getRepositoryIdsForProductAndUser(
                     productId,
-                    call.ortServerPrincipal.username
+                    call.ortServerPrincipal.username,
+                    call.ortServerPrincipal.userId
                 )
 
                 val latestRunsWithAnalyzerJobInFinalState = repositoryIds.mapNotNull {

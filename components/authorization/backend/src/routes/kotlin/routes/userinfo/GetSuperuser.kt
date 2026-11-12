@@ -59,7 +59,8 @@ private fun superuserChecker(): AuthorizationChecker =
         override suspend fun loadEffectiveRole(
             service: AuthorizationService,
             userId: String,
+            userSub: String,
             call: ApplicationCall
         ): EffectiveRole =
-            service.getEffectiveRole(userId, CompoundHierarchyId.WILDCARD)
+            service.getEffectiveRole(userId, CompoundHierarchyId.WILDCARD, userSub)
     }

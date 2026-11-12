@@ -68,7 +68,7 @@ abstract class SearchIntegrationTest(
             fixtures = dbExtension.fixtures
             hierarchyAuthorizationService = mockk {
                 coEvery {
-                    filterHierarchyIds(any(), any(), any(), any(), any())
+                    filterHierarchyIds(any(), any(), any(), any(), any(), any())
                 } returns HierarchyFilter.WILDCARD
             }
             searchService = SearchService(db, hierarchyAuthorizationService)
