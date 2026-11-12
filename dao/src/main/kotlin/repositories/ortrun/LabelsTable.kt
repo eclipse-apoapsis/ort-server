@@ -25,6 +25,7 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
+import org.jetbrains.exposed.v1.jdbc.insertIgnore
 
 /** A table to represent an ORT run. */
 object LabelsTable : LongIdTable("labels") {
@@ -37,10 +38,19 @@ class LabelDao(id: EntityID<Long>) : LongEntity(id) {
         private fun findByKeyAndValue(key: String, value: String): LabelDao? =
             find { LabelsTable.key eq key and (LabelsTable.value eq value) }.firstOrNull()
 
+        /**
+         * Return the label with the given [key] and [value], creating it if it does not exist yet. The label is
+         * inserted with `ON CONFLICT DO NOTHING`, so that concurrent transactions creating the same label do not fail
+         * with a unique constraint violation.
+         */
         fun getOrPut(key: String, value: String): LabelDao =
-            findByKeyAndValue(key, value) ?: new {
-                this.key = key
-                this.value = value
+            findByKeyAndValue(key, value) ?: run {
+                LabelsTable.insertIgnore {
+                    it[this.key] = key
+                    it[this.value] = value
+                }
+
+                checkNotNull(findByKeyAndValue(key, value))
             }
     }
 
