@@ -116,8 +116,9 @@ class ProductServiceTest : WordSpec({
 
         "assign the admin role to the repository creator" {
             val userId = "test-user"
+            val userSub = "test-user-sub"
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { assignRole(any(), any(), any()) } returns Unit
+                coEvery { assignRole(any(), any(), any(), any()) } returns Unit
             }
             val service = ProductService(
                 db,
@@ -134,7 +135,8 @@ class ProductServiceTest : WordSpec({
                 productId = product.id,
                 name = "Repository name",
                 description = "Repository description",
-                creatorId = userId
+                creatorId = userId,
+                creatorSub = userSub
             )
 
             coVerify {
@@ -145,7 +147,8 @@ class ProductServiceTest : WordSpec({
                         OrganizationId(product.organizationId),
                         ProductId(product.id),
                         RepositoryId(repository.id)
-                    )
+                    ),
+                    userSub
                 )
             }
         }

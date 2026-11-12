@@ -39,8 +39,14 @@ import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
  * roles on all levels is constructed.)
  */
 object RoleAssignmentsTable : LongIdTable("role_assignments") {
-    /** The ID of the user who is subject of this assignment. */
+    /** The username of the user who is subject of this assignment. */
     val userId = text("user_id")
+
+    /**
+     * The ID of the user in Keycloak who is subject of this assignment, or *null* for assignments made before IDs were
+     * stored.
+     */
+    val userSub = text("user_sub").nullable()
 
     /** The optional organization ID this assignment refers to. */
     val organizationId = reference("organization_id", OrganizationsTable).nullable()

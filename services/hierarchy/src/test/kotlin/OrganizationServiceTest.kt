@@ -71,9 +71,10 @@ class OrganizationServiceTest : WordSpec({
     "createProduct" should {
         "assign the admin role to the product creator" {
             val userId = "test-user"
+            val userSub = "test-user-sub"
             val organizationId = fixtures.organization.id
             val authorizationService = mockk<AuthorizationService> {
-                coEvery { assignRole(any(), any(), any()) } returns Unit
+                coEvery { assignRole(any(), any(), any(), any()) } returns Unit
             }
             val service = OrganizationService(
                 db,
@@ -87,14 +88,16 @@ class OrganizationServiceTest : WordSpec({
                 name = "product",
                 description = "description",
                 organizationId = organizationId,
-                creatorId = userId
+                creatorId = userId,
+                creatorSub = userSub
             )
 
             coVerify {
                 authorizationService.assignRole(
                     userId,
                     ProductRole.ADMIN,
-                    CompoundHierarchyId.forProduct(OrganizationId(organizationId), ProductId(product.id))
+                    CompoundHierarchyId.forProduct(OrganizationId(organizationId), ProductId(product.id)),
+                    userSub
                 )
             }
         }

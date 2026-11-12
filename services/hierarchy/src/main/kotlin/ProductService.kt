@@ -61,14 +61,18 @@ class ProductService(
     private val ortRunRepository: OrtRunRepository,
     private val authorizationService: AuthorizationService
 ) {
-    /** Create a repository inside a [product][productId]. */
+    /**
+     * Create a repository inside a [product][productId]. If [creatorId] is given, assign the ADMIN role on the
+     * repository to the user with this username and the Keycloak ID [creatorSub].
+     */
     suspend fun createRepository(
         type: RepositoryType,
         url: String,
         productId: Long,
         name: String?,
         description: String?,
-        creatorId: String? = null
+        creatorId: String? = null,
+        creatorSub: String? = null
     ): Repository {
         val repository = db.transaction {
             repositoryRepository.create(
@@ -89,7 +93,8 @@ class ProductService(
                     OrganizationId(repository.organizationId),
                     ProductId(productId),
                     RepositoryId(repository.id)
-                )
+                ),
+                creatorSub
             )
         }
 
@@ -130,19 +135,22 @@ class ProductService(
     }
 
     /**
-     * List all repositories for a [product][productId] that are visible to a specific [user][userId] according to the
-     * given [parameters] and [filter], which is applied to the repository name or URL.
+     * List all repositories for a [product][productId] that are visible to a specific [user][userId] with the
+     * Keycloak ID [userSub] according to the given [parameters] and [filter], which is applied to the repository name
+     * or URL.
      */
     suspend fun listRepositoriesForProductAndUser(
         productId: Long,
         userId: String,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
-        filter: FilterParameter? = null
+        filter: FilterParameter? = null,
+        userSub: String? = null
     ): ListQueryResult<Repository> = getProduct(productId)?.let { product ->
         val hierarchyFilter = authorizationService.filterHierarchyIds(
             userId,
             RepositoryRole.READER,
-            ProductId(product.id)
+            ProductId(product.id),
+            userSub
         )
         db.transaction {
             repositoryRepository.list(parameters, filter, hierarchyFilter)
@@ -165,12 +173,20 @@ class ProductService(
             .map { it[RepositoriesTable.id].value }
     }
 
-    /** Return the IDs of repositories in the product that are readable by the given user. */
-    suspend fun getRepositoryIdsForProductAndUser(productId: Long, userId: String): List<Long> {
+    /**
+     * Return the IDs of repositories in the product that are readable by the user with the given [userId] and the
+     * Keycloak ID [userSub].
+     */
+    suspend fun getRepositoryIdsForProductAndUser(
+        productId: Long,
+        userId: String,
+        userSub: String? = null
+    ): List<Long> {
         val hierarchyFilter = authorizationService.filterHierarchyIds(
             userId,
             RepositoryRole.READER,
-            ProductId(productId)
+            ProductId(productId),
+            userSub
         )
 
         return withContext(Dispatchers.Virtual) {
