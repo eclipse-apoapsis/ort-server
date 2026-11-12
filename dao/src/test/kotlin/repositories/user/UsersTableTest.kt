@@ -24,6 +24,7 @@ import io.kotest.matchers.comparables.beBetween
 import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
@@ -33,11 +34,37 @@ import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.User
 
+import org.jetbrains.exposed.v1.core.TextColumnType
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
 import org.jetbrains.exposed.v1.jdbc.update
 
 class UsersTableTest : WordSpec({
     val dbExtension = extension(DatabaseTestExtension())
+
+    "insertOrUpdate" should {
+        "not write a new row version for a user that has not changed" {
+            val user = User("user-id", "john.doe", "John Doe")
+            dbExtension.db.transaction { UserDao.insertOrUpdate(user) }
+            val formerRowVersion = dbExtension.db.transaction { readRowVersion("user-id") }
+
+            dbExtension.db.transaction { UserDao.insertOrUpdate(user) }
+
+            dbExtension.db.transaction { readRowVersion("user-id") } shouldBe formerRowVersion
+        }
+
+        "write a new row version for a user that has changed" {
+            dbExtension.db.transaction { UserDao.insertOrUpdate(User("user-id", "john.doe", "John Doe")) }
+            val formerRowVersion = dbExtension.db.transaction { readRowVersion("user-id") }
+
+            dbExtension.db.transaction { UserDao.insertOrUpdate(User("user-id", "john.doe", "John Smith")) }
+
+            dbExtension.db.transaction {
+                readRowVersion("user-id") shouldNotBe formerRowVersion
+                UserDao["user-id"].fullName shouldBe "John Smith"
+            }
+        }
+    }
 
     "insertOrUpdateAll" should {
         "store new and known users with the synchronization time and keep the creation time" {
@@ -132,3 +159,12 @@ class UsersTableTest : WordSpec({
         }
     }
 })
+
+/**
+ * Return the ID of the transaction that wrote the current version of the row of the user with the given [userId]. This
+ * changes whenever a new version of the row is written.
+ */
+private fun JdbcTransaction.readRowVersion(userId: String): String? =
+    exec("SELECT xmin FROM users WHERE user_id = ?", listOf(TextColumnType() to userId)) { resultSet ->
+        resultSet.takeIf { it.next() }?.getString(1)
+    }
