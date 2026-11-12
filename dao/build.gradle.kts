@@ -71,7 +71,6 @@ dependencies {
     testFixturesImplementation(projects.shared.coroutines)
     testFixturesImplementation(projects.utils.test)
 
-    testFixturesImplementation(libs.flyway.core)
     testFixturesImplementation(libs.hikari)
     testFixturesImplementation(libs.koin.test)
     testFixturesImplementation(libs.kotest.extensions.testcontainers)

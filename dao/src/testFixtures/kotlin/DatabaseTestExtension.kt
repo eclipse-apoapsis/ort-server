@@ -39,17 +39,15 @@ import org.eclipse.apoapsis.ortserver.dao.migrate
 import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 import org.eclipse.apoapsis.ortserver.utils.test.Images
 
-import org.flywaydb.core.Flyway
-import org.flywaydb.core.api.configuration.FluentConfiguration
-
 import org.jetbrains.exposed.v1.jdbc.Database
 
 import org.testcontainers.postgresql.PostgreSQLContainer
 
 /**
  * A test extension for integration tests that need database access. The extension sets up a test container with a
- * Postgres database and creates a data source for this database. Schema migration is run before each test. After each
- *  test, a cleanup is performed, so that every test sees a fresh database.
+ * Postgres database and creates a data source for this database. Schema migration is run once before the first test.
+ * After each test, all tables are truncated, so that every test sees an empty database. This is much faster than
+ * re-creating the schema for every test.
  *
  * The execution order of lifecycle callbacks in Kotest depends on the way the extension is installed and the test class
  * implements the callbacks. To ensure that the database migrations have already been performed, either declare the
@@ -64,6 +62,8 @@ open class DatabaseTestExtension : BeforeSpecListener, AfterSpecListener, Before
 
     lateinit var dataSource: DataSource
 
+    private lateinit var tables: List<String>
+
     lateinit var db: Database
     lateinit var fixtures: Fixtures
 
@@ -73,6 +73,12 @@ open class DatabaseTestExtension : BeforeSpecListener, AfterSpecListener, Before
             maximumPoolSize = 5
             schema = TEST_DB_SCHEMA
         }
+
+        dataSource.migrate()
+        tables = dataSource.readTables()
+
+        // Remove data inserted by migrations, so that every test starts with the same empty database.
+        dataSource.truncate(tables)
     }
 
     override suspend fun afterSpec(spec: Spec) {
@@ -83,25 +89,40 @@ open class DatabaseTestExtension : BeforeSpecListener, AfterSpecListener, Before
 
     override suspend fun beforeEach(testCase: TestCase) {
         db = dataSource.connect()
-        dataSource.migrate()
         fixtures = Fixtures(db)
     }
 
     override suspend fun afterEach(testCase: TestCase, result: TestResult) {
         // Ensure every integration test uses a clean database.
-        clean(dataSource)
+        dataSource.truncate(tables)
     }
 }
 
 internal const val TEST_DB_SCHEMA = "ort_server_test"
 
-private fun clean(dataSource: DataSource) {
-    Flyway(getTestFlywayConfig(dataSource)).clean()
-}
+/**
+ * Return the names of all tables in the test schema, except for the Flyway schema history table which must be kept to
+ * not run the migrations again.
+ */
+private fun DataSource.readTables(): List<String> =
+    connection.use { connection ->
+        connection.prepareStatement(
+            "SELECT tablename FROM pg_tables WHERE schemaname = ? AND tablename <> 'flyway_schema_history'"
+        ).use { statement ->
+            statement.setString(1, TEST_DB_SCHEMA)
+            statement.executeQuery().use { resultSet ->
+                buildList { while (resultSet.next()) add(resultSet.getString(1)) }
+            }
+        }
+    }
 
-internal fun getTestFlywayConfig(dataSource: DataSource) = FluentConfiguration()
-    .dataSource(dataSource)
-    .schemas(TEST_DB_SCHEMA)
-    .cleanDisabled(false)
-    .createSchemas(true)
-    .baselineOnMigrate(true)
+/** Remove all data from the given [tables] and reset all sequences, so that generated IDs start at 1 again. */
+private fun DataSource.truncate(tables: List<String>) {
+    connection.use { connection ->
+        connection.createStatement().use { statement ->
+            statement.execute(
+                "TRUNCATE TABLE ${tables.joinToString { "\"$TEST_DB_SCHEMA\".\"$it\"" }} RESTART IDENTITY CASCADE"
+            )
+        }
+    }
+}
