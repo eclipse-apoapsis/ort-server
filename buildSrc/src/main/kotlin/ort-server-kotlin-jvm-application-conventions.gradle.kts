@@ -33,6 +33,8 @@ dependencies {
             require(libsCatalog.findVersion("kotlinPlugin").get().requiredVersion)
         }
     }
+
+    runtimeOnly(platform(libsCatalog.findLibrary("netty.bom").get()))
 }
 
 tinyJib {
