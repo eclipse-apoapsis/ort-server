@@ -106,10 +106,9 @@ fun Route.admin() = route("admin") {
             put(putSuperuser, requireSuperuser()) {
                 val username = call.requireParameter("username")
 
-                runCatching { userService.getUserById(username) }
-                    .getOrElse { return@put call.respond(HttpStatusCode.NotFound) }
+                val userSub = userService.findUserId(username) ?: return@put call.respond(HttpStatusCode.NotFound)
 
-                authorizationService.assignRole(username, OrganizationRole.ADMIN, CompoundHierarchyId.WILDCARD)
+                authorizationService.assignRole(username, OrganizationRole.ADMIN, CompoundHierarchyId.WILDCARD, userSub)
 
                 call.respond(HttpStatusCode.NoContent)
             }

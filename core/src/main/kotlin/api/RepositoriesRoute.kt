@@ -138,7 +138,10 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
         updateRepository.productId.ifPresent { newProductId = it }
 
         suspend fun checkAdditionalPermission(elementId: HierarchyId, checker: PermissionChecker) {
-            if (authorizationService.checkPermissions(requirePrincipal().username, elementId, checker) == null) {
+            val principal = requirePrincipal()
+            val effectiveRole =
+                authorizationService.checkPermissions(principal.username, elementId, checker, principal.userId)
+            if (effectiveRole == null) {
                 throw AuthorizationException()
             }
         }
@@ -301,12 +304,18 @@ fun Route.repositories() = route("repositories/{repositoryId}") {
                     return@put
                 }
 
-                if (!userService.userExists(user.username)) {
+                val userSub = userService.findUserId(user.username)
+                if (userSub == null) {
                     call.respondError(HttpStatusCode.NotFound, "Could not find user '${user.username}'.")
                     return@put
                 }
 
-                authorizationService.assignRole(user.username, role, call.ortServerPrincipal.effectiveRole.elementId)
+                authorizationService.assignRole(
+                    user.username,
+                    role,
+                    call.ortServerPrincipal.effectiveRole.elementId,
+                    userSub
+                )
                 call.respond(HttpStatusCode.NoContent)
             }
 

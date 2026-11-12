@@ -361,6 +361,21 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
             }
         }
 
+        "store the ID of the user with the superuser role" {
+            integrationTestApplication {
+                val response = superuserClient.put("/api/v1/admin/users/${TEST_USER.username.value}/superuser")
+
+                response shouldHaveStatus HttpStatusCode.NoContent
+
+                val authorizationService = DbAuthorizationService(dbExtension.db)
+                val username = TEST_USER.username.value
+                authorizationService.getEffectiveRole(username, CompoundHierarchyId.WILDCARD, testUserId())
+                    .isSuperuser shouldBe true
+                authorizationService.getEffectiveRole(username, CompoundHierarchyId.WILDCARD, OTHER_USER_ID)
+                    .isSuperuser shouldBe false
+            }
+        }
+
         "respond with NotFound if the user doesn't exist" {
             integrationTestApplication {
                 val response = superuserClient.put("/api/v1/admin/users/non-existing-user/superuser")
@@ -423,3 +438,6 @@ class AdminRouteIntegrationTest : AbstractIntegrationTest({
         }
     }
 }, createKeycloakRealmPerTest = true)
+
+/** The ID of a user other than [TEST_USER] who had the same username. */
+private const val OTHER_USER_ID = "other-user-id"

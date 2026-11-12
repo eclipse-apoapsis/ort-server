@@ -33,6 +33,7 @@ import kotlinx.serialization.json.Json
 import org.eclipse.apoapsis.ortserver.clients.keycloak.DefaultKeycloakClient.Companion.configureAuthentication
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.KeycloakTestExtension
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_CLIENT
+import org.eclipse.apoapsis.ortserver.clients.keycloak.test.TEST_REALM
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createCliConfigMapForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createJwtConfigMapForTestRealm
 import org.eclipse.apoapsis.ortserver.clients.keycloak.test.createKeycloakClientConfigurationForTestRealm
@@ -122,6 +123,11 @@ abstract class AbstractIntegrationTest(
     init {
         body()
     }
+
+    /** Return the ID that Keycloak gave to [TEST_USER] when it was created. */
+    fun testUserId(): String =
+        keycloak.keycloakAdminClient.realm(TEST_REALM).users()
+            .searchByUsername(TEST_USER.username.value, true).single().id
 
     suspend fun integrationTestApplication(
         configs: Map<String, Any> = emptyMap(),

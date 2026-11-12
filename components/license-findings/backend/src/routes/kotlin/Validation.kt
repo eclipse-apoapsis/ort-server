@@ -36,6 +36,7 @@ fun requireRunReadPermission(ortRunRepository: OrtRunRepository): AuthorizationC
         override suspend fun loadEffectiveRole(
             service: AuthorizationService,
             userId: String,
+            userSub: String,
             call: ApplicationCall
         ): EffectiveRole? {
             val runId = call.requireIdParameter("runId")
@@ -44,7 +45,8 @@ fun requireRunReadPermission(ortRunRepository: OrtRunRepository): AuthorizationC
             return service.checkPermissions(
                 userId,
                 RepositoryId(ortRun.repositoryId),
-                HierarchyPermissions.permissions(RepositoryPermission.READ_ORT_RUNS)
+                HierarchyPermissions.permissions(RepositoryPermission.READ_ORT_RUNS),
+                userSub
             )
         }
     }

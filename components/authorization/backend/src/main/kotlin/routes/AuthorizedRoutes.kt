@@ -127,6 +127,7 @@ suspend fun ApplicationCall.createAuthorizedPrincipal(
                 checker.loadEffectiveRole(
                     service = authorizationService,
                     userId = payload.getClaim("preferred_username").asString(),
+                    userSub = payload.subject,
                     call = this
                 )
             } else {

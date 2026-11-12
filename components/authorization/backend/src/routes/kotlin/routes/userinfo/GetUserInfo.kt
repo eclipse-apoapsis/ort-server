@@ -168,14 +168,15 @@ private fun userInfoChecker(): AuthorizationChecker =
         override suspend fun loadEffectiveRole(
             service: AuthorizationService,
             userId: String,
+            userSub: String,
             call: ApplicationCall
         ): EffectiveRole {
             val hierarchyId = call.optionalIdParameter(REPOSITORY_PARAM)?.let(::RepositoryId)
                 ?: call.optionalIdParameter(PRODUCT_PARAM)?.let(::ProductId)
                 ?: call.optionalIdParameter(ORGANIZATION_PARAM)?.let(::OrganizationId)
 
-            return hierarchyId?.let { id -> service.getEffectiveRole(userId, id) }
-                ?: service.getEffectiveRole(userId, CompoundHierarchyId.WILDCARD)
+            return hierarchyId?.let { id -> service.getEffectiveRole(userId, id, userSub) }
+                ?: service.getEffectiveRole(userId, CompoundHierarchyId.WILDCARD, userSub)
         }
     }
 
