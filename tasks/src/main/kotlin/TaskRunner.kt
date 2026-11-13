@@ -25,6 +25,9 @@ import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.apis.CoreV1Api
 import io.kubernetes.client.util.ClientBuilder
 
+import java.io.File
+import java.io.IOException
+
 import kotlin.system.exitProcess
 
 import kotlinx.coroutines.Dispatchers
@@ -122,6 +125,12 @@ private const val TASK_RUNNER_NAME = "task runner"
 /** The name of the environment variable that determines whether the JVM should be kept alive after task execution. */
 private const val KEEP_JVM_VARIABLE = "TASKS_KEEP_JVM"
 
+/** The name of the environment variable that overrides the path of the termination message file. */
+private const val TERMINATION_MESSAGE_PATH_VARIABLE = "TASKS_TERMINATION_MESSAGE_PATH"
+
+/** The file that Kubernetes reads as the termination message of a container, unless configured otherwise. */
+private const val DEFAULT_TERMINATION_MESSAGE_PATH = "/dev/termination-log"
+
 /**
  * The main entry point of the task runner component.
  *
@@ -131,7 +140,9 @@ private const val KEEP_JVM_VARIABLE = "TASKS_KEEP_JVM"
  *   environment variable.
  *
  * The process exits with code 1 if any task fails, if a task does not exist, or if the task runner cannot be set up,
- * and with code 0 otherwise.
+ * and with code 0 otherwise. The failed tasks and their reasons are also written to the termination message file of
+ * Kubernetes, `/dev/termination-log`, if that file exists. The `TASKS_TERMINATION_MESSAGE_PATH` environment variable
+ * changes its path.
  *
  * In addition, the function reads the `TASKS_KEEP_JVM` environment variable. Its value is a flag that controls whether
  * the task runner should end the JVM process after executing the tasks. This may be required to prevent that some
@@ -173,8 +184,27 @@ internal suspend fun runTaskRunner(modules: List<Module>): Int {
 
     if (failures.isEmpty()) return 0
 
+    // Write the termination message first, so that the summary stays the last line of the output.
+    writeTerminationMessage(failures)
     logger.error("Failed tasks: ${failures.joinToString { "${it.taskName} (${it.reason})" }}.")
     return 1
+}
+
+/**
+ * Write the given [failures] to the file that Kubernetes shows as the termination message of the container, so that
+ * operators can see why tasks failed without reading the logs. Do nothing if the file does not exist, which is the
+ * case outside Kubernetes.
+ */
+private fun writeTerminationMessage(failures: List<TaskFailure>) {
+    val file = File(System.getenv(TERMINATION_MESSAGE_PATH_VARIABLE) ?: DEFAULT_TERMINATION_MESSAGE_PATH)
+    if (!file.exists()) return
+
+    // Kubernetes truncates the termination message to the size it allows for the container.
+    try {
+        file.writeText(failures.joinToString("\n") { "${it.taskName}: ${it.reason}" })
+    } catch (e: IOException) {
+        logger.warn("Could not write the termination message to '$file'.", e)
+    }
 }
 
 /**
