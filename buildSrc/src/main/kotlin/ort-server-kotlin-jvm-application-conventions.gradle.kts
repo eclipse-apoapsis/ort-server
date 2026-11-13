@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-private val libsCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
+val libsCatalog = extensions.getByType<VersionCatalogsExtension>().named("libs")
 
 plugins {
     // Apply precompiled plugins.
