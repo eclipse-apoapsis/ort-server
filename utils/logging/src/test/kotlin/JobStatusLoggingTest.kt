@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.utils.logging
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.matchers.comparables.shouldBeLessThan
 import io.kotest.matchers.ints.shouldBeGreaterThanOrEqual
@@ -49,7 +50,7 @@ class JobStatusLoggingTest : WordSpec({
         "set the provided MDC elements" {
             val executed = AtomicInteger()
 
-            val result = runWithStatusLogging(
+            runWithStatusLogging(
                 "mdcJob",
                 StandardMdcKeys.TRACE_ID to "tx-1", CustomMdcKey("key2") to "val2"
             ) {
@@ -58,7 +59,6 @@ class JobStatusLoggingTest : WordSpec({
                 executed.incrementAndGet()
             }
 
-            result shouldBe true
             executed.get() shouldBe 1
         }
 
@@ -80,11 +80,11 @@ class JobStatusLoggingTest : WordSpec({
         "handle and log status information for a failed job execution" {
             val exception = RuntimeException("Test exception")
 
-            val result = runWithStatusLogging("statusLoggingFailureTest") {
-                throw exception
-            }
-
-            result shouldBe false
+            shouldThrow<RuntimeException> {
+                runWithStatusLogging("statusLoggingFailureTest") {
+                    throw exception
+                }
+            } shouldBe exception
 
             val status = logExtension.statusLog()
             status[JobStatusLogging.STATUS_KEY]?.jsonPrimitive?.content shouldBe JobStatusLogging.STATUS_FAILURE
@@ -130,8 +130,10 @@ class JobStatusLoggingTest : WordSpec({
         "fill the field for the job execution times even on failure" {
             val exception = IllegalStateException("Failure for execution time test")
 
-            runWithStatusLogging("statusLoggingExecutionTimeFailureTest") {
-                throw exception
+            shouldThrow<IllegalStateException> {
+                runWithStatusLogging("statusLoggingExecutionTimeFailureTest") {
+                    throw exception
+                }
             }
 
             val status = logExtension.statusLog()

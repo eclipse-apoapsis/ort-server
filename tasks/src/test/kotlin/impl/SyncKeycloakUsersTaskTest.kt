@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.tasks.impl
 
 import com.typesafe.config.ConfigFactory
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.shouldBe
@@ -32,6 +33,7 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.jsonPrimitive
 
 import org.eclipse.apoapsis.ortserver.components.authorization.service.KeycloakUserSyncService
+import org.eclipse.apoapsis.ortserver.components.authorization.service.UserSyncException
 import org.eclipse.apoapsis.ortserver.components.authorization.service.UserSyncResult
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.utils.logging.JobStatusLogging
@@ -86,5 +88,19 @@ class SyncKeycloakUsersTaskTest : StringSpec({
         status[SyncKeycloakUsersTask.DELETED_USERS_KEY]?.jsonPrimitive?.int shouldBe 2
         status[SyncKeycloakUsersTask.REMOVED_ROLE_ASSIGNMENTS_KEY]?.jsonPrimitive?.int shouldBe 7
         status[SyncKeycloakUsersTask.FILLED_ROLE_ASSIGNMENTS_KEY]?.jsonPrimitive?.int shouldBe 11
+    }
+
+    "The task should fail with the error of the sync" {
+        val exception = UserSyncException("Keycloak returned no users.")
+        val syncService = mockk<KeycloakUserSyncService> {
+            coEvery { sync() } throws exception
+        }
+
+        shouldThrow<UserSyncException> {
+            SyncKeycloakUsersTask(syncService).execute()
+        } shouldBe exception
+
+        val status = logExtension.statusLog()
+        status[JobStatusLogging.STATUS_KEY]?.jsonPrimitive?.content shouldBe JobStatusLogging.STATUS_FAILURE
     }
 })
