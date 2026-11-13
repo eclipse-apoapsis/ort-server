@@ -37,7 +37,22 @@ dependencies {
     runtimeOnly(platform(libsCatalog.findLibrary("netty.bom").get()))
 }
 
+/**
+ * JVM options required by all ORT Server images. These are set via the `JDK_JAVA_OPTIONS` environment variable
+ * instead of Jib's `jvmFlags`, because the latter are only part of the image entrypoint and get lost if the container
+ * command is overridden, e.g. by a Kubernetes deployment. The `java` launcher reads the environment variable
+ * regardless of how it is invoked. Note that setting `JDK_JAVA_OPTIONS` in a deployment replaces these defaults.
+ */
+val jdkJavaOptions = listOf(
+    // Required by GitConfigFileProvider to clear the JGit HTTP authentication cache.
+    "--add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED"
+)
+
 tinyJib {
+    container {
+        environment.put("JDK_JAVA_OPTIONS", jdkJavaOptions.joinToString(" "))
+    }
+
     // Support Jib system properties for compatibility.
     System.getProperty("jib.allowInsecureRegistries")?.also { allowInsecureRegistries = it.toBooleanStrict() }
     System.getProperty("jib.applicationCache")?.also { applicationCache = File(it) }
