@@ -22,7 +22,6 @@ package org.eclipse.apoapsis.ortserver.core.plugins
 import io.ktor.http.HttpHeaders
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
-import io.ktor.server.auth.jwt.JWTCredential
 import io.ktor.server.auth.principal
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.plugins.ratelimit.RateLimit
@@ -30,6 +29,8 @@ import io.ktor.server.plugins.ratelimit.RateLimitName
 import io.ktor.server.request.ApplicationRequest
 
 import kotlin.time.Duration.Companion.milliseconds
+
+import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal
 
 import org.koin.ktor.ext.inject
 
@@ -52,12 +53,9 @@ fun Application.configureRateLimit() {
         register(RateLimitName("authorized")) {
             rateLimiter(limit = authorizedMaxRequests, refillPeriod = authorizedWindowMs.milliseconds)
             requestKey { call ->
-                val jwtPrincipal = call.principal<JWTCredential>()
-                if (jwtPrincipal != null) {
-                    "jwt:${jwtPrincipal.subject}"
-                } else {
-                    getRateLimitKey(call.request)
-                }
+                // The user ID is empty if an exception occurred while creating the principal.
+                val userId = call.principal<OrtServerPrincipal>()?.userId?.takeUnless { it.isEmpty() }
+                if (userId != null) "user:$userId" else getRateLimitKey(call.request)
             }
         }
     }
