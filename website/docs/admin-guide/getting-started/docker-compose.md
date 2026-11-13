@@ -122,6 +122,9 @@ The `tasks` service has no default task, so every run has to name the tasks to r
 The tasks `sync-keycloak-users`, `delete-old-ort-runs`, `delete-orphaned-entities` and `delete-unused-projections` work in Docker Compose.
 The tasks whose names start with `kubernetes-` require Kubernetes and fail in Docker Compose.
 
+If a task fails, the other tasks of the run still run, and `docker compose run` ends with exit code 1.
+The last line of its output names each failed task and the reason.
+
 When using [local images](#run-with-local-images), set the image prefix and tag in the same way as for `docker compose up`:
 
 ```shell
