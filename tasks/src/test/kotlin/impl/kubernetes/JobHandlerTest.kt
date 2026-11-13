@@ -19,6 +19,8 @@
 
 package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.containExactlyInAnyOrder
@@ -26,6 +28,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import io.kubernetes.client.openapi.ApiException
 import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.apis.CoreV1Api
 import io.kubernetes.client.openapi.models.V1ContainerState
@@ -49,6 +52,7 @@ import io.mockk.slot
 import io.mockk.verify
 
 import java.io.IOException
+import java.net.HttpURLConnection
 import java.time.Month
 import java.time.OffsetDateTime
 import java.time.ZoneOffset
@@ -122,7 +126,9 @@ class JobHandlerTest : WordSpec({
 
             val handler = createJobHandler(jobApi, coreApi)
 
-            handler.deleteAndNotifyIfFailed(job)
+            shouldThrow<IllegalStateException> {
+                handler.deleteAndNotifyIfFailed(job)
+            }
 
             verify {
                 podNames.forAll {
@@ -130,6 +136,26 @@ class JobHandlerTest : WordSpec({
                 }
 
                 jobApi.deleteNamespacedJob(jobName, NAMESPACE)
+            }
+        }
+
+        "treat a job and pods that do not exist anymore as deleted" {
+            val podNames = listOf("pod1", "pod2")
+            val jobName = "jobAlreadyGone"
+
+            val coreApi = mockk<CoreV1Api>()
+            val jobApi = mockk<BatchV1Api>()
+
+            coreApi.mockPodList(jobName, podNames.map(::createPod))
+
+            val notFound = ApiException(HttpURLConnection.HTTP_NOT_FOUND, "Not Found")
+            every { coreApi.deleteNamespacedPod(any(), any()) } throws notFound
+            every { jobApi.deleteNamespacedJob(any(), any()) } throws notFound
+
+            val handler = createJobHandler(jobApi, coreApi)
+
+            shouldNotThrowAny {
+                handler.deleteJob(jobName)
             }
         }
 
@@ -176,7 +202,9 @@ class JobHandlerTest : WordSpec({
             val jobApi = mockk<BatchV1Api>()
             val handler = createJobHandler(jobApi = jobApi, notifier = notifier)
 
-            handler.deleteAndNotifyIfFailed(job)
+            shouldThrow<IllegalStateException> {
+                handler.deleteAndNotifyIfFailed(job)
+            }
 
             verify(exactly = 0) {
                 jobApi.deleteNamespacedJob(any(), any())

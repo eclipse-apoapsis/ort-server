@@ -20,7 +20,9 @@
 package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
 import io.kotest.assertions.AssertionErrorBuilder
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.shouldBe
 
 import io.kubernetes.client.openapi.models.V1Job
 import io.kubernetes.client.openapi.models.V1ObjectMeta
@@ -88,8 +90,51 @@ class LongRunningJobsFinderTaskTest : WordSpec({
         "delete long-running Notifier worker jobs" {
             testLongRunningJobsDetectionForEndpoint(NotifierEndpoint)
         }
+
+        "delete the jobs of all endpoints and then fail if a job could not be deleted" {
+            val config = mockk<MonitorConfig> {
+                every { timeoutConfig } returns testTimeoutConfig
+            }
+
+            val threshold = OffsetDateTime.of(2024, Month.AUGUST.value, 13, 10, 18, 11, 0, ZoneOffset.UTC)
+            val timeHelper = mockk<TimeHelper> {
+                every { before(any()) } returns threshold
+            }
+
+            val configJob = createTimeoutJob("configJob", threshold)
+            val analyzerJob = createTimeoutJob("analyzerJob", threshold)
+
+            val jobHandler = mockk<JobHandler> {
+                Endpoint.entries().forEach {
+                    every { findJobsForWorker(it) } returns emptyList()
+                }
+                every { findJobsForWorker(ConfigEndpoint) } returns listOf(configJob)
+                every { findJobsForWorker(AnalyzerEndpoint) } returns listOf(analyzerJob)
+                every { deleteJob("configJob") } throws IllegalStateException("Test exception")
+                every { deleteJob("analyzerJob") } just runs
+            }
+
+            val finder = LongRunningJobsFinderTask(jobHandler, config, timeHelper)
+
+            shouldThrow<IllegalStateException> {
+                finder.execute()
+            }.message shouldBe "Could not clean up 1 of 2 jobs: configJob."
+
+            verify {
+                jobHandler.deleteJob("analyzerJob")
+            }
+        }
     }
 })
+
+/** Create a job with the given [jobName] that has run into its timeout at the given [threshold]. */
+private fun createTimeoutJob(jobName: String, threshold: OffsetDateTime): V1Job {
+    val meta = V1ObjectMeta().apply { name = jobName }
+    return mockk<V1Job> {
+        every { isTimeout(threshold) } returns true
+        every { metadata } returns meta
+    }
+}
 
 /** The name of the job that runs into a timeout. */
 private const val TIMEOUT_JOB_NAME = "longRunningJob"

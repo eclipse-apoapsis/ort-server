@@ -19,11 +19,13 @@
 
 package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
+import io.kubernetes.client.openapi.ApiException
 import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.apis.CoreV1Api
 import io.kubernetes.client.openapi.models.V1Job
 import io.kubernetes.client.openapi.models.V1Pod
 
+import java.net.HttpURLConnection
 import java.time.OffsetDateTime
 import java.util.TreeMap
 
@@ -167,22 +169,27 @@ internal class JobHandler(
                     }
                 }.onFailure { exception ->
                     logger.error("Failed to notify about failed job: '{}'.", jobName, exception)
-                }.onSuccess {
-                    deleteJob(jobName)
-                }
+                }.getOrThrow()
+
+                deleteJob(jobName)
             }
         }
     }
 
-    /** Delete the job with the given [jobName]. Log occurring exceptions, but ignore them otherwise. */
+    /**
+     * Delete the job with the given [jobName] and all its pods. Try every deletion, also if some of them fail, and then
+     * throw an exception if any of them failed.
+     */
     fun deleteJob(jobName: String) {
-        runCatching {
+        val jobError = runDeletion("job '$jobName'") {
             jobApi.deleteNamespacedJob(jobName, config.namespace).execute()
-        }.onFailure { e ->
-            logger.error("Could not remove job '$jobName': $e.")
         }
 
-        findPodsForJob(jobName).forEach(this::deletePod)
+        val podErrors = findPodsForJob(jobName).mapNotNull(this::deletePod)
+
+        (listOfNotNull(jobError) + podErrors).firstOrNull()?.let { e ->
+            throw IllegalStateException("Could not remove job '$jobName' or one of its pods.", e)
+        }
     }
 
     /** Find all pods that have been created for the job with the specified [jobName]. */
@@ -196,16 +203,23 @@ internal class JobHandler(
      * Delete the given [pod]. Kubernetes does not automatically remove completed pods. Therefore, this class does the
      * removal when the associated jobs are completed.
      */
-    private fun deletePod(pod: V1Pod) {
+    private fun deletePod(pod: V1Pod): Throwable? =
         pod.metadata?.name?.let { podName ->
             logger.info("Deleting pod $podName.")
-            runCatching {
+            runDeletion("pod '$podName'") {
                 api.deleteNamespacedPod(podName, config.namespace).execute()
-            }.onFailure { e ->
-                logger.error("Could not remove pod '$podName': $e.")
             }
         }
-    }
+
+    /**
+     * Run the given [deletion] of the Kubernetes object with the given [description], and return its error. Return
+     * `null` if the deletion succeeds, or if the object does not exist anymore, for example because Kubernetes has
+     * already removed it: the object is gone either way.
+     */
+    private fun runDeletion(description: String, deletion: () -> Unit): Throwable? =
+        runCatching(deletion).exceptionOrNull()
+            ?.takeUnless { it is ApiException && it.code == HttpURLConnection.HTTP_NOT_FOUND }
+            ?.also { e -> logger.error("Could not remove $description: $e.") }
 
     /**
      * Check whether the job with the given [jobName] can be processed. Return *false* if this job has already been
@@ -271,3 +285,28 @@ internal data class JobData(
     /** A flag whether this job has failed. */
     val failed: Boolean
 )
+
+/** The logger for the errors of single jobs in [processJobs]. */
+private val processJobsLogger = LoggerFactory.getLogger(JobHandler::class.java)
+
+/**
+ * Run the given [action] for each of the given [jobs], also if it fails for some of them. Log the error of each job
+ * for which the [action] failed, and return the names of these jobs, using [jobName] to get the name of a job.
+ */
+internal suspend fun <T> processJobs(
+    jobs: List<T>,
+    jobName: (T) -> String,
+    action: suspend (T) -> Unit
+): List<String> =
+    jobs.mapNotNull { job ->
+        runCatching { action(job) }.exceptionOrNull()?.let { e ->
+            jobName(job).also { name -> processJobsLogger.error("Could not clean up job '$name'.", e) }
+        }
+    }
+
+/** Throw an exception naming the [failedJobs] if there are any, out of the [totalCount] jobs that were processed. */
+internal fun checkNoFailedJobs(failedJobs: List<String>, totalCount: Int) {
+    check(failedJobs.isEmpty()) {
+        "Could not clean up ${failedJobs.size} of $totalCount jobs: ${failedJobs.joinToString()}."
+    }
+}
