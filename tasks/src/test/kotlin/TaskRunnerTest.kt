@@ -22,11 +22,16 @@ package org.eclipse.apoapsis.ortserver.tasks
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.engine.spec.tempdir
+import io.kotest.engine.spec.tempfile
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.file.exist
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNot
+import io.kotest.matchers.string.beEmpty
 import io.kotest.matchers.types.beInstanceOf
 
 import io.mockk.coEvery
@@ -102,6 +107,43 @@ class TaskRunnerTest : KoinTest, WordSpec() {
                     ConfigFactory.invalidateCaches()
                     runTaskRunner(listOf(configModule(), createTestModule(TaskLog())))
                 }
+
+                exitCode shouldBe 1
+            }
+        }
+
+        "the termination message" should {
+            "name the failed tasks and their reasons" {
+                val file = tempfile()
+
+                val (_, exitCode) = withTerminationMessagePath(file.path) {
+                    checkTaskExecution("task1", ERROR_TASK)
+                }
+
+                exitCode shouldBe 1
+                file.readText() shouldBe "$ERROR_TASK: IOException: Test exception: Task execution failed."
+            }
+
+            "not be written if all tasks succeed" {
+                val file = tempfile()
+
+                withTerminationMessagePath(file.path) { checkTaskExecution("task1") }
+
+                file.readText() should beEmpty()
+            }
+
+            "not be created if the file does not exist" {
+                val file = tempdir().resolve("termination-log")
+
+                withTerminationMessagePath(file.path) { checkTaskExecution(ERROR_TASK) }
+
+                file shouldNot exist()
+            }
+
+            "not change the exit code if it cannot be written" {
+                val directory = tempdir()
+
+                val (_, exitCode) = withTerminationMessagePath(directory.path) { checkTaskExecution(ERROR_TASK) }
 
                 exitCode shouldBe 1
             }
@@ -205,6 +247,12 @@ private suspend fun checkTaskExecution(vararg taskNames: String): Pair<TaskLog, 
 private suspend fun runTestTasks(taskLog: TaskLog, vararg taskNames: String): List<TaskFailure> =
     withTasks(*taskNames) {
         runTasks(listOf(configModule(), createTestModule(taskLog)))
+    }
+
+/** Call the given [block] with the termination message written to the given [path]. */
+private suspend fun <T> withTerminationMessagePath(path: String, block: suspend () -> T): T =
+    withEnvironment("TASKS_TERMINATION_MESSAGE_PATH", path) {
+        block()
     }
 
 /** Call the given [block] with the configuration set up to run the tasks with the given [taskNames]. */
