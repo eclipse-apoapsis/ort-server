@@ -166,7 +166,10 @@ class OrtRunService(
         runIds.forEach { runId ->
             runCatching {
                 deleteOrtRun(runId)
-            }.onFailure { failureCount++ }
+            }.onFailure { e ->
+                logger.error("Could not delete ORT run $runId.", e)
+                failureCount++
+            }
         }
 
         logger.info("Deleted ${runIds.size - failureCount} old ORT runs successfully.")
