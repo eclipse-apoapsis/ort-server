@@ -304,7 +304,8 @@ class GitConfigFileProvider internal constructor(
     }.onFailure { e ->
         logger.warn(
             "Failed to clear JGit HTTP authentication cache. This may lead to Git authentication issues. Consider " +
-                    "setting '--add-opens java.base/sun.net.www.protocol.http=ALL-UNNAMED' javaOpts.",
+                    "adding '--add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED' to the JDK_JAVA_OPTIONS " +
+                    "environment variable.",
             e
         )
     }
