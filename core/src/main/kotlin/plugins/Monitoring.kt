@@ -26,10 +26,10 @@ import io.ktor.server.plugins.calllogging.CallLogging
 import io.ktor.server.plugins.calllogging.processingTimeMillis
 import io.ktor.server.request.httpMethod
 import io.ktor.server.request.path
-import io.ktor.server.request.uri
 
 import java.util.UUID
 
+import org.eclipse.apoapsis.ortserver.core.utils.uriForLogging
 import org.eclipse.apoapsis.ortserver.utils.system.CustomHttpHeaders
 
 import org.slf4j.event.Level
@@ -56,7 +56,7 @@ fun Application.configureMonitoring() {
 
             val status = call.response.status()?.value ?: "unknown"
             val method = call.request.httpMethod.value
-            val uri = call.request.uri
+            val uri = call.request.uriForLogging()
             val duration = call.processingTimeMillis()
 
             "clientType=$clientType $method $uri: $status in ${duration}ms"
