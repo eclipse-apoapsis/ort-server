@@ -19,8 +19,10 @@
 
 package org.eclipse.apoapsis.ortserver.tasks.impl.kubernetes
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.shouldBe
 
 import io.kubernetes.client.openapi.models.V1Job
 
@@ -84,6 +86,33 @@ class ReaperTaskTest : StringSpec({
             }
         }
     }
+
+    "The reaper should process all jobs and then fail if a job could not be cleaned up" {
+        val date = OffsetDateTime.of(2023, Month.MAY.value, 3, 12, 8, 11, 0, ZoneOffset.UTC)
+        val timeHelper = mockk<TimeHelper> {
+            every { before(maxJobAge) } returns date
+        }
+
+        val jobs = listOf(createJob("job1"), createJob("job2"), createJob("job3"))
+        val jobHandler = mockk<JobHandler>()
+        every { jobHandler.findJobsCompletedBefore(date) } returns jobs
+        jobs.forEach {
+            coEvery { jobHandler.deleteAndNotifyIfFailed(it) } just runs
+        }
+        coEvery { jobHandler.deleteAndNotifyIfFailed(jobs[1]) } throws IllegalStateException("Test exception")
+
+        val reaper = ReaperTask(jobHandler, createConfig(), timeHelper)
+
+        shouldThrow<IllegalStateException> {
+            reaper.execute()
+        }.message shouldBe "Could not clean up 1 of 3 jobs: job2."
+
+        jobs.forAll { job ->
+            coVerify {
+                jobHandler.deleteAndNotifyIfFailed(job)
+            }
+        }
+    }
 })
 
 /** Create a test configuration for the reaper. */
@@ -92,11 +121,11 @@ private fun createConfig(): MonitorConfig =
         every { reaperMaxAge } returns maxJobAge
     }
 
-/** Create a dummy job. */
-private fun createJob(): JobData = JobData(
+/** Create a dummy job with the given [jobName]. */
+private fun createJob(jobName: String = "someJob"): JobData = JobData(
     mockk<V1Job> {
         every { metadata } returns mockk {
-            every { name } returns "someJob"
+            every { name } returns jobName
         }
     },
     failed = false

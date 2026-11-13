@@ -59,20 +59,34 @@ internal class LongRunningJobsFinderTask(
     }
 
     override suspend fun execute() {
-        checkForLongRunningJobsForEndpoint(ConfigEndpoint, monitorConfig.timeoutConfig.configTimeout)
-        checkForLongRunningJobsForEndpoint(AnalyzerEndpoint, monitorConfig.timeoutConfig.analyzerTimeout)
-        checkForLongRunningJobsForEndpoint(AdvisorEndpoint, monitorConfig.timeoutConfig.advisorTimeout)
-        checkForLongRunningJobsForEndpoint(ScannerEndpoint, monitorConfig.timeoutConfig.scannerTimeout)
-        checkForLongRunningJobsForEndpoint(EvaluatorEndpoint, monitorConfig.timeoutConfig.evaluatorTimeout)
-        checkForLongRunningJobsForEndpoint(ReporterEndpoint, monitorConfig.timeoutConfig.reporterTimeout)
-        checkForLongRunningJobsForEndpoint(NotifierEndpoint, monitorConfig.timeoutConfig.notifierTimeout)
+        val timeouts = monitorConfig.timeoutConfig
+        val endpointTimeouts = listOf(
+            ConfigEndpoint to timeouts.configTimeout,
+            AnalyzerEndpoint to timeouts.analyzerTimeout,
+            AdvisorEndpoint to timeouts.advisorTimeout,
+            ScannerEndpoint to timeouts.scannerTimeout,
+            EvaluatorEndpoint to timeouts.evaluatorTimeout,
+            ReporterEndpoint to timeouts.reporterTimeout,
+            NotifierEndpoint to timeouts.notifierTimeout
+        )
+
+        // Delete the jobs of each endpoint before listing the jobs of the next one, and report failed jobs at the end.
+        var jobCount = 0
+        val failedJobs = endpointTimeouts.flatMap { (endpoint, timeout) ->
+            val jobs = findLongRunningJobs(endpoint, timeout)
+            jobCount += jobs.size
+
+            processJobs(jobs, { it }) { job ->
+                logger.info("Deleting long-running job '{}'.", job)
+                jobHandler.deleteJob(job)
+            }
+        }
+
+        checkNoFailedJobs(failedJobs, jobCount)
     }
 
-    /**
-     * Check for long-running worker jobs for the given [endpoint] that have reached the given [timeout]. Delete
-     * such jobs.
-     */
-    private fun checkForLongRunningJobsForEndpoint(endpoint: Endpoint<*>, timeout: Duration) {
+    /** Return the names of the worker jobs for the given [endpoint] that have reached the given [timeout]. */
+    private fun findLongRunningJobs(endpoint: Endpoint<*>, timeout: Duration): List<String> {
         val threshold = timeHelper.before(timeout)
         logger.info(
             "Checking for long-running jobs for endpoint '{}' started before {}.",
@@ -80,12 +94,8 @@ internal class LongRunningJobsFinderTask(
             threshold
         )
 
-        jobHandler.findJobsForWorker(endpoint)
+        return jobHandler.findJobsForWorker(endpoint)
             .filter { it.isTimeout(threshold) }
             .mapNotNull { it.metadata?.name }
-            .forEach { job ->
-                logger.info("Deleting long-running job '{}'.", job)
-                jobHandler.deleteJob(job)
-            }
     }
 }

@@ -51,6 +51,10 @@ internal class ReaperTask(
 
         logger.debug("Found {} completed jobs.", completeJobs.size)
 
-        completeJobs.forEach { jobHandler.deleteAndNotifyIfFailed(it) }
+        val failedJobs = processJobs(completeJobs, { it.job.metadata?.name.orEmpty() }) {
+            jobHandler.deleteAndNotifyIfFailed(it)
+        }
+
+        checkNoFailedJobs(failedJobs, completeJobs.size)
     }
 }
