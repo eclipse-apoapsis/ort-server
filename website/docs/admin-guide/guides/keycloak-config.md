@@ -194,14 +194,23 @@ The user ID that the task fills in, or compares role assignments with, always co
 After these answers, the task applies check 3 again.
 If Keycloak cannot be reached, or any of its answers is an error, the task stops without changes.
 
-When a check stops the task, the log of the task contains an error with the numbers that exceeded the limit.
+When a check stops the task, the run fails with an error that contains the numbers that exceeded the limit.
 To make a bigger cleanup than the limits allow, raise the limits for a single run of the task.
 The task does not provide a setting to skip the checks.
 
 ### Errors
 
-A run that fails or stops logs an error, but the job itself still ends successfully, as for all maintenance tasks.
-To detect failed runs, monitor the job status log: each run writes an entry with the status `success` or `failure`, and successful runs also include the number of stored users, new users, users marked as deleted, removed role assignments, and role assignments that got a user ID filled in.
+A run that fails, or that a safety check stops, ends with exit code 1, so Kubernetes shows its job as failed.
+The termination message of the pod names the reason, for example the check that stopped the run and the numbers that exceeded the limit.
+`kubectl describe pod` shows it as the message of the terminated container.
+The last line of the log of the task names the reason as well.
+
+The Helm chart does not retry a failed run; the next run starts at the next scheduled time.
+To run the task at once after fixing the cause, create a job from its cron job, for example `kubectl create job --from=cronjob/<cron job name> <job name>`.
+`kubectl get cronjobs` lists the names of the cron jobs.
+
+In addition, each run writes an entry with the status `success` or `failure` to the job status log.
+Entries of successful runs also include the number of stored users, new users, users marked as deleted, removed role assignments, and role assignments that got a user ID filled in.
 
 ### Upgrading
 
