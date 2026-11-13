@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.tasks.impl
 
 import com.typesafe.config.ConfigFactory
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.comparables.shouldBeLessThan
@@ -90,15 +91,30 @@ class DeleteOldOrtRunsTaskTest : StringSpec({
         status[JobStatusLogging.PROCESSED_COUNT_KEY]?.jsonPrimitive?.int shouldBe deletionResult.totalCount
         status[JobStatusLogging.FAILED_COUNT_KEY]?.jsonPrimitive?.int shouldBe deletionResult.failedCount
     }
+
+    "The task should fail if some old ORT runs could not be deleted" {
+        val configMap = mapOf("dataRetention.ortRunDays" to "100")
+        val configManager = ConfigManager.create(ConfigFactory.parseMap(configMap))
+        val ortRunService = createOrtRunService(ProcessingResult(5, 2))
+
+        val task = DeleteOldOrtRunsTask.create(configManager, ortRunService)
+
+        shouldThrow<IllegalStateException> {
+            task.execute()
+        }.message shouldBe "Could not delete 2 of 5 old ORT runs."
+
+        val status = logExtension.statusLog()
+        status[JobStatusLogging.STATUS_KEY]?.jsonPrimitive?.content shouldBe JobStatusLogging.STATUS_FAILURE
+    }
 })
 
 /** The result to be returned by the [OrtRunService] mock when it is invoked to delete old ORT runs. */
-private val deletionResult = ProcessingResult(16, 1)
+private val deletionResult = ProcessingResult(16)
 
-/** Create a mock for [OrtRunService] and prepare it to expect a call to delete old ORT runs. */
-private fun createOrtRunService(): OrtRunService =
+/** Create a mock for [OrtRunService] that returns the given [result] when it is invoked to delete old ORT runs. */
+private fun createOrtRunService(result: ProcessingResult = deletionResult): OrtRunService =
     mockk<OrtRunService> {
-    coEvery { deleteRunsCreatedBefore(any()) } returns deletionResult
+    coEvery { deleteRunsCreatedBefore(any()) } returns result
 }
 
 /** Check whether the given [ortRunService] mock was correctly invoked to delete ORT runs older than [expectedDays]. */
