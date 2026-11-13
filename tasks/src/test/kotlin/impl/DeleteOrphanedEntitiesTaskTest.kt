@@ -19,23 +19,24 @@
 
 package org.eclipse.apoapsis.ortserver.tasks.impl
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
-import io.mockk.just
 import io.mockk.mockk
-import io.mockk.runs
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
 import org.eclipse.apoapsis.ortserver.config.Path
+import org.eclipse.apoapsis.ortserver.model.util.ProcessingResult
 import org.eclipse.apoapsis.ortserver.services.ortrun.OrphanRemovalService
 
 class DeleteOrphanedEntitiesTaskTest : StringSpec({
     "DeleteOrphanedEntitiesTask should start orphaned entities deletion service" {
         val orphanRemovalService = mockk<OrphanRemovalService> {
-            coEvery { deleteRunsOrphanedEntities(any()) } just runs
+            coEvery { deleteRunsOrphanedEntities(any()) } returns ProcessingResult(3)
         }
 
         val subConfigManager = mockk<ConfigManager>()
@@ -49,5 +50,21 @@ class DeleteOrphanedEntitiesTaskTest : StringSpec({
         coVerify {
             orphanRemovalService.deleteRunsOrphanedEntities(subConfigManager)
         }
+    }
+
+    "DeleteOrphanedEntitiesTask should fail if some orphaned entities could not be deleted" {
+        val orphanRemovalService = mockk<OrphanRemovalService> {
+            coEvery { deleteRunsOrphanedEntities(any()) } returns ProcessingResult(10, 4)
+        }
+
+        val configManager = mockk<ConfigManager> {
+            every { subConfig(Path("orphanHandlers")) } returns mockk()
+        }
+
+        val task = DeleteOrphanedEntitiesTask.create(configManager, orphanRemovalService)
+
+        shouldThrow<IllegalStateException> {
+            task.execute()
+        }.message shouldBe "Could not delete 4 of 10 orphaned entities."
     }
 })
