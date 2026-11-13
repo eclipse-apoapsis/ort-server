@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.services.ortrun
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldStartWith
 
@@ -81,6 +82,7 @@ import org.eclipse.apoapsis.ortserver.model.JobStatus
 import org.eclipse.apoapsis.ortserver.model.OrtRunStatus
 import org.eclipse.apoapsis.ortserver.model.ScannerJobConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.DependencyGraphsWrapper
+import org.eclipse.apoapsis.ortserver.model.util.ProcessingResult
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -427,6 +429,50 @@ class OrphanRemovalServiceTest : WordSpec() {
                     RemoteArtifactsTable.selectAll().toList().forEach {
                         it[RemoteArtifactsTable.url] shouldStartWith "not.to.delete"
                     }
+                }
+            }
+
+            "count the orphaned entities in chunks that could not be deleted" {
+                val vcsInfoIds = db.transaction {
+                    createRemoteArtifactsTableEntry(url = "to.delete")
+                    (1..4).map { createVcsInfoTableEntry(url = "orphan.$it").value }
+                }
+
+                // Make the deletion of one orphaned VCS info fail, so that its whole chunk is not deleted.
+                db.transaction {
+                    exec(
+                        """
+                        CREATE FUNCTION reject_vcs_info_delete() RETURNS trigger AS $$
+                        BEGIN
+                            IF OLD.id = ${vcsInfoIds.first()} THEN
+                                RAISE EXCEPTION 'Deletion rejected by test.';
+                            END IF;
+                            RETURN OLD;
+                        END;
+                        $$ LANGUAGE plpgsql
+                        """.trimIndent()
+                    )
+                    exec(
+                        "CREATE TRIGGER reject_vcs_info_delete BEFORE DELETE ON ${VcsInfoTable.tableName} " +
+                            "FOR EACH ROW EXECUTE FUNCTION reject_vcs_info_delete()"
+                    )
+                }
+
+                val result = try {
+                    service.deleteRunsOrphanedEntities(createConfigManager())
+                } finally {
+                    db.transaction {
+                        exec("DROP TRIGGER reject_vcs_info_delete ON ${VcsInfoTable.tableName}")
+                        exec("DROP FUNCTION reject_vcs_info_delete()")
+                    }
+                }
+
+                result shouldBe ProcessingResult(totalCount = 5, failedCount = 2)
+
+                db.transaction {
+                    VcsInfoTable.selectAll().count() shouldBe 2
+                    VcsInfoTable.selectAll().map { it[VcsInfoTable.id].value } shouldContain vcsInfoIds.first()
+                    RemoteArtifactsTable.selectAll().count() shouldBe 0
                 }
             }
 
