@@ -113,6 +113,12 @@ private const val TASK_RUNNER_SECTION = "taskRunner"
 /** The name of the configuration property that defines the tasks to be executed. */
 private const val TASKS_PROPERTY = "tasks"
 
+/** Line breaks, together with the whitespace around them, to be replaced in the reason of a failed task. */
+private val LINE_BREAKS = Regex("\\s*\\R\\s*")
+
+/** The name under which a failure to set up the task runner itself is reported. */
+private const val TASK_RUNNER_NAME = "task runner"
+
 /** The name of the environment variable that determines whether the JVM should be kept alive after task execution. */
 private const val KEEP_JVM_VARIABLE = "TASKS_KEEP_JVM"
 
@@ -123,6 +129,9 @@ private const val KEEP_JVM_VARIABLE = "TASKS_KEEP_JVM"
  * is read from a section named `taskRunner`. It supports the following properties:
  * - `tasks`: A comma-separated list of names for the tasks to be executed. This can be overridden using the `TASKS`
  *   environment variable.
+ *
+ * The process exits with code 1 if any task fails, if a task does not exist, or if the task runner cannot be set up,
+ * and with code 0 otherwise.
  *
  * In addition, the function reads the `TASKS_KEEP_JVM` environment variable. Its value is a flag that controls whether
  * the task runner should end the JVM process after executing the tasks. This may be required to prevent that some
@@ -144,9 +153,28 @@ private const val KEEP_JVM_VARIABLE = "TASKS_KEEP_JVM"
  * - `sync-keycloak-users`: Syncs the stored users and the role assignments with the users in Keycloak.
  */
 suspend fun main() {
-    runTasks(listOf(configModule(), databaseModule(), tasksModule()))
+    val exitCode = runTaskRunner(listOf(configModule(), databaseModule(), tasksModule()))
 
-    endTaskRunner()
+    if (!System.getenv(KEEP_JVM_VARIABLE).toBoolean()) exitProcess(exitCode)
+}
+
+/** A task that failed, with a one-line [reason] for the operator. */
+internal data class TaskFailure(val taskName: String, val reason: String)
+
+/**
+ * Run the configured tasks with the given [modules] and log a summary of the tasks that failed. Return the exit code
+ * for the process: 1 if a task failed or the task runner could not be set up, 0 otherwise.
+ */
+internal suspend fun runTaskRunner(modules: List<Module>): Int {
+    val failures = runCatching { runTasks(modules) }.getOrElse { e ->
+        logger.error("Could not set up the task runner.", e)
+        listOf(TaskFailure(TASK_RUNNER_NAME, e.toReason()))
+    }
+
+    if (failures.isEmpty()) return 0
+
+    logger.error("Failed tasks: ${failures.joinToString { "${it.taskName} (${it.reason})" }}.")
+    return 1
 }
 
 /**
@@ -155,15 +183,15 @@ suspend fun main() {
  * The tasks to run are defined via the configuration as a comma-separated list of task names. To change the set of
  * tasks dynamically, the configuration can be overwritten using an environment variable. The task names must match
  * named bean definitions of type [Task] in the Koin modules. The function fetches all referenced tasks from Koin and
- * executes them asynchronously.
+ * executes them asynchronously. Return the tasks that failed.
  */
-internal suspend fun runTasks(modules: List<Module>) {
+internal suspend fun runTasks(modules: List<Module>): List<TaskFailure> {
     logger.info("Setting up Koin application.")
     val app = startKoin {
         modules(modules)
     }
 
-    try {
+    return try {
         val config = app.koin.get<ConfigManager>().subConfig(Path(TASK_RUNNER_SECTION))
         val tasksToRun = config.getString(TASKS_PROPERTY).split(',')
 
@@ -175,25 +203,14 @@ internal suspend fun runTasks(modules: List<Module>) {
                         val task = app.koin.get<Task>(named(taskName))
                         task.execute()
                         logger.info("Task '$taskName' executed successfully.")
-                    }.onFailure { e ->
-                        logTaskExecutionError(taskName, e)
+                    }.exceptionOrNull()?.let { e ->
+                        TaskFailure(taskName, logTaskExecutionError(taskName, e))
                     }
                 }
-            }.awaitAll()
+            }.awaitAll().filterNotNull()
         }
     } finally {
         stopKoin()
-    }
-}
-
-/**
- * Exit the JVM depending on the value of the corresponding environment variable. This function is called after task
- * execution to make sure that the JVM process is cleanly terminated.
- */
-internal fun endTaskRunner() {
-    if (!System.getenv(KEEP_JVM_VARIABLE).toBoolean()) {
-        logger.info("Exiting JVM after task execution.")
-        exitProcess(0)
     }
 }
 
@@ -279,12 +296,24 @@ private fun tasksModule(): Module =
     }
 
 /**
- * Log an [exception] about a failed execution of the task with the given [taskName]. Based on the concrete exception,
- *
+ * Log an [exception] about a failed execution of the task with the given [taskName], and return the reason of the
+ * failure for the operator.
  */
-private fun logTaskExecutionError(taskName: String, exception: Throwable) {
+private fun logTaskExecutionError(taskName: String, exception: Throwable): String =
     when (exception) {
-        is NoDefinitionFoundException -> logger.error("Task '$taskName' does not exist.", exception)
-        else -> logger.error("Execution of task '$taskName' failed.", exception)
+        is NoDefinitionFoundException -> {
+            logger.error("Task '$taskName' does not exist.", exception)
+            "Task '$taskName' does not exist."
+        }
+
+        else -> {
+            logger.error("Execution of task '$taskName' failed.", exception)
+            exception.toReason()
+        }
     }
-}
+
+/**
+ * Return a one-line description of this exception with its class name and message. Line breaks in the message are
+ * replaced by spaces, so that the summary of failed tasks stays a single line.
+ */
+private fun Throwable.toReason(): String = "${this::class.simpleName}: ${message?.replace(LINE_BREAKS, " ")}"

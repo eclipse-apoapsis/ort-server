@@ -26,13 +26,12 @@ import io.kotest.extensions.system.withEnvironment
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.should
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.beInstanceOf
 
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.just
 import io.mockk.mockkStatic
-import io.mockk.runs
 import io.mockk.slot
 import io.mockk.unmockkStatic
 
@@ -69,29 +68,68 @@ class TaskRunnerTest : KoinTest, WordSpec() {
             unmockDatabaseModule()
         }
 
-        "runTasks" should {
+        "runTaskRunner" should {
             "execute a single task" {
-                val taskLog = checkTaskExecution("task1")
+                val (taskLog, exitCode) = checkTaskExecution("task1")
 
                 taskLog.getExecutedTasks() should containExactly("task1")
+                exitCode shouldBe 0
             }
 
             "execute multiple tasks" {
-                val taskLog = checkTaskExecution("task1", "task2")
+                val (taskLog, exitCode) = checkTaskExecution("task1", "task2")
 
                 taskLog.getExecutedTasks() should containExactlyInAnyOrder("task1", "task2")
+                exitCode shouldBe 0
             }
 
             "handle errors during task execution" {
-                val taskLog = checkTaskExecution("task1", ERROR_TASK, "task2")
+                val (taskLog, exitCode) = checkTaskExecution("task1", ERROR_TASK, "task2")
 
                 taskLog.getExecutedTasks() should containExactlyInAnyOrder("task1", ERROR_TASK, "task2")
+                exitCode shouldBe 1
             }
 
             "handle a non-existing task" {
-                val taskLog = checkTaskExecution("task1", "nonExistingTask", "task2")
+                val (taskLog, exitCode) = checkTaskExecution("task1", "nonExistingTask", "task2")
 
                 taskLog.getExecutedTasks() should containExactlyInAnyOrder("task1", "task2")
+                exitCode shouldBe 1
+            }
+
+            "fail if the task runner cannot be set up" {
+                val exitCode = withEnvironment(mapOf("TASKS" to null)) {
+                    ConfigFactory.invalidateCaches()
+                    runTaskRunner(listOf(configModule(), createTestModule(TaskLog())))
+                }
+
+                exitCode shouldBe 1
+            }
+        }
+
+        "runTasks" should {
+            "return the reason of a failed task" {
+                val failures = runTestTasks(TaskLog(), "task1", ERROR_TASK)
+
+                failures should containExactly(
+                    TaskFailure(ERROR_TASK, "IOException: Test exception: Task execution failed.")
+                )
+            }
+
+            "return the reason of a failed task on a single line" {
+                val failures = runTestTasks(TaskLog(), MULTILINE_ERROR_TASK)
+
+                failures should containExactly(
+                    TaskFailure(MULTILINE_ERROR_TASK, "IllegalStateException: First line. Second line.")
+                )
+            }
+
+            "return a failure for a task that does not exist" {
+                val failures = runTestTasks(TaskLog(), "nonExistingTask")
+
+                failures should containExactly(
+                    TaskFailure("nonExistingTask", "Task 'nonExistingTask' does not exist.")
+                )
             }
         }
 
@@ -150,21 +188,31 @@ class TaskRunnerTest : KoinTest, WordSpec() {
 }
 
 /**
- * Call the task runner function to execute the tasks with the given [taskNames] and return a [TaskLog] with
- * information about the executed tasks.
+ * Call the task runner to execute the tasks with the given [taskNames]. Return a [TaskLog] with information about the
+ * executed tasks, and the exit code of the task runner.
  */
-private suspend fun checkTaskExecution(vararg taskNames: String): TaskLog {
-    val tasksToExecute = taskNames.joinToString(",")
+private suspend fun checkTaskExecution(vararg taskNames: String): Pair<TaskLog, Int> {
     val taskLog = TaskLog()
 
-    val environment = mapOf("TASKS" to tasksToExecute)
-    withEnvironment(environment) {
-        ConfigFactory.invalidateCaches()
+    val exitCode = withTasks(*taskNames) {
+        runTaskRunner(listOf(configModule(), createTestModule(taskLog)))
+    }
+
+    return taskLog to exitCode
+}
+
+/** Execute the tasks with the given [taskNames] using [runTasks] and the given [taskLog], and return the failures. */
+private suspend fun runTestTasks(taskLog: TaskLog, vararg taskNames: String): List<TaskFailure> =
+    withTasks(*taskNames) {
         runTasks(listOf(configModule(), createTestModule(taskLog)))
     }
 
-    return taskLog
-}
+/** Call the given [block] with the configuration set up to run the tasks with the given [taskNames]. */
+private suspend fun <T> withTasks(vararg taskNames: String, block: suspend () -> T): T =
+    withEnvironment(mapOf("TASKS" to taskNames.joinToString(","))) {
+        ConfigFactory.invalidateCaches()
+        block()
+    }
 
 /**
  * Run a test with the `main` function. Call the given [block] with a Koin instance that is configured with the modules
@@ -174,7 +222,7 @@ private suspend fun checkTaskExecution(vararg taskNames: String): TaskLog {
 private suspend fun checkMain(keepAliveFlag: Boolean = true, block: (Koin) -> Unit) {
     mockkStatic(::runTasks)
     try {
-        coEvery { runTasks(any()) } just runs
+        coEvery { runTasks(any()) } returns emptyList()
 
         val environment = mapOf(
             "ORCHESTRATOR_SENDER_TRANSPORT_TYPE" to TEST_TRANSPORT_NAME,
@@ -243,6 +291,9 @@ private class ErrorTask(taskLog: TaskLog) : TestTaskBase(ERROR_TASK, taskLog) {
     }
 }
 
+/** The name of a task implementation that throws an exception with a message of several lines. */
+private const val MULTILINE_ERROR_TASK = "multilineErrorTask"
+
 /** Create a [Module] that contains all test tasks and their dependencies. */
 private fun createTestModule(taskLog: TaskLog): Module =
     module {
@@ -250,4 +301,9 @@ private fun createTestModule(taskLog: TaskLog): Module =
         single<Task>(named("task1")) { TestTaskBase("task1", get()) }
         single<Task>(named("task2")) { TestTaskBase("task2", get()) }
         single<Task>(named(ERROR_TASK)) { ErrorTask(get()) }
+        single<Task>(named(MULTILINE_ERROR_TASK)) {
+            object : Task {
+                override suspend fun execute() = error("First line.\n  Second line.")
+            }
+        }
     }
