@@ -145,7 +145,6 @@ dependencies {
 
     implementation(ktorLibs.serialization.kotlinx.json)
     implementation(ktorLibs.server.auth)
-    implementation(ktorLibs.server.auth.jwt)
     implementation(ktorLibs.server.callLogging)
     implementation(ktorLibs.server.compression)
     implementation(ktorLibs.server.contentNegotiation)
