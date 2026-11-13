@@ -39,6 +39,7 @@ import io.kubernetes.client.openapi.models.V1ObjectMeta
 import io.kubernetes.client.openapi.models.V1Pod
 import io.kubernetes.client.openapi.models.V1PodList
 import io.kubernetes.client.openapi.models.V1PodStatus
+import io.kubernetes.client.openapi.models.V1Status
 
 import io.mockk.every
 import io.mockk.just
@@ -77,8 +78,8 @@ class JobHandlerTest : WordSpec({
 
             coreApi.mockPodList(jobName, podNames.map(::createPod))
 
-            every { coreApi.deleteNamespacedPod(any(), any()) } returns null
-            every { jobApi.deleteNamespacedJob(any(), any()) } returns null
+            coreApi.mockPodDeletion()
+            jobApi.mockJobDeletion()
 
             val handler = createJobHandler(jobApi, coreApi)
 
@@ -142,8 +143,8 @@ class JobHandlerTest : WordSpec({
 
             coreApi.mockPodList(jobName, podNames.map(::createPod))
 
-            every { coreApi.deleteNamespacedPod(any(), any()) } returns null
-            every { jobApi.deleteNamespacedJob(any(), any()) } returns null
+            coreApi.mockPodDeletion()
+            jobApi.mockJobDeletion()
 
             val notifier = mockk<FailedJobNotifier> {
                 every { sendFailedJobNotification(job.job) } just runs
@@ -191,7 +192,8 @@ class JobHandlerTest : WordSpec({
 
             coreApi.mockPodList(jobName, emptyList())
 
-            every { coreApi.deleteNamespacedPod(any(), any()) } returns null
+            coreApi.mockPodDeletion()
+            jobApi.mockJobDeletion()
 
             val notifier = mockk<FailedJobNotifier> {
                 every { sendFailedJobNotification(job.job) } just runs
@@ -224,7 +226,8 @@ class JobHandlerTest : WordSpec({
             )
             coreApi.mockPodLists(jobsToList)
 
-            every { coreApi.deleteNamespacedPod(any(), any()) } returns null
+            coreApi.mockPodDeletion()
+            jobApi.mockJobDeletion()
 
             val notifier = mockk<FailedJobNotifier> {
                 every { sendFailedJobNotification(job.job) } just runs
@@ -555,6 +558,20 @@ private fun createMetadata(name: String): V1ObjectMeta =
     V1ObjectMeta().apply {
         name(name)
     }
+
+/** Prepare this mock to delete any job successfully. */
+private fun BatchV1Api.mockJobDeletion() {
+    every { deleteNamespacedJob(any(), any()) } returns mockk {
+        every { execute() } returns V1Status()
+    }
+}
+
+/** Prepare this mock to delete any pod successfully. */
+private fun CoreV1Api.mockPodDeletion() {
+    every { deleteNamespacedPod(any(), any()) } returns mockk {
+        every { execute() } returns V1Pod()
+    }
+}
 
 /**
  * Prepare this API mock to expect a list operation for the pods of the job with the given [jobName]. The operation
