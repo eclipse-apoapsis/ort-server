@@ -19,23 +19,23 @@
 
 package org.eclipse.apoapsis.ortserver.core.plugins
 
-import io.ktor.http.HttpHeaders
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.principal
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.plugins.ratelimit.RateLimit
 import io.ktor.server.plugins.ratelimit.RateLimitName
-import io.ktor.server.request.ApplicationRequest
 
 import kotlin.time.Duration.Companion.milliseconds
 
 import org.eclipse.apoapsis.ortserver.components.authorization.routes.OrtServerPrincipal
+import org.eclipse.apoapsis.ortserver.core.utils.ClientIpResolver
 
 import org.koin.ktor.ext.inject
 
 fun Application.configureRateLimit() {
     val config: ApplicationConfig by inject()
+    val clientIpResolver = ClientIpResolver.create(config)
 
     val publicMaxRequests = config.property("ktor.rateLimit.public.maxRequests").getString().toInt()
     val publicWindowMs = config.property("ktor.rateLimit.public.windowMs").getString().toLong()
@@ -46,7 +46,7 @@ fun Application.configureRateLimit() {
         register(RateLimitName("public")) {
             rateLimiter(limit = publicMaxRequests, refillPeriod = publicWindowMs.milliseconds)
             requestKey { call ->
-                getRateLimitKey(call.request)
+                "ip:${clientIpResolver.resolve(call.request)}"
             }
         }
 
@@ -55,14 +55,8 @@ fun Application.configureRateLimit() {
             requestKey { call ->
                 // The user ID is empty if an exception occurred while creating the principal.
                 val userId = call.principal<OrtServerPrincipal>()?.userId?.takeUnless { it.isEmpty() }
-                if (userId != null) "user:$userId" else getRateLimitKey(call.request)
+                if (userId != null) "user:$userId" else "ip:${clientIpResolver.resolve(call.request)}"
             }
         }
     }
-}
-
-private fun getRateLimitKey(request: ApplicationRequest): String {
-    val clientIp = request.headers[HttpHeaders.XForwardedFor]
-        ?: request.local.remoteAddress
-    return "ip:$clientIp"
 }
