@@ -78,7 +78,8 @@ object JobStatusLogging {
     /**
      * Execute the given [block] with the logic of the job with the given [jobName] and log the status of the job
      * execution in a JSON format. Make sure that the given [mdcElements] are included in the MDC context during the
-     * job execution. Return a flag whether the job execution was successful or not.
+     * job execution. If the [block] throws an exception, log the failure status and then rethrow the exception, so
+     * that the caller can react to the failure.
      *
      * The idea behind this function is that job implementations should wrap their logic in a call to this function to
      * ensure that the status of their execution is always logged in a consistent and structured way. This makes it
@@ -91,11 +92,11 @@ object JobStatusLogging {
         jobName: String,
         vararg mdcElements: Pair<MdcKey, String>,
         block: suspend CoroutineScope.(JsonObjectBuilder) -> Unit
-    ): Boolean {
+    ) {
         val startTime = System.currentTimeMillis()
 
         val elementsWithComponent = arrayOf(*mdcElements, StandardMdcKeys.COMPONENT to jobName)
-        return withMdcContext(*elementsWithComponent) {
+        withMdcContext(*elementsWithComponent) {
             runCatching {
                 buildJsonObject {
                     block(this)
@@ -119,7 +120,7 @@ object JobStatusLogging {
                 logger.error("Execution of job '$jobName' failed.", exception)
                 logger.info(jobStatus.toString())
             }
-        }.isSuccess
+        }.getOrThrow()
     }
 
     /** Return the JSON property for the execution time of a job based on the given [startTime] in milliseconds. */
