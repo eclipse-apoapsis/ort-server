@@ -71,6 +71,10 @@ class DeleteOldOrtRunsTask(
 
             jsonBuilder.put(JobStatusLogging.PROCESSED_COUNT_KEY, JsonPrimitive(result.totalCount))
             jsonBuilder.put(JobStatusLogging.FAILED_COUNT_KEY, JsonPrimitive(result.failedCount))
+
+            check(result.failedCount == 0) {
+                "Could not delete ${result.failedCount} of ${result.totalCount} old ORT runs."
+            }
         }
     }
 }
