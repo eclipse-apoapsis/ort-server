@@ -280,7 +280,7 @@ importers:
         version: 3.10.2(clean-css@5.3.3)(cssnano@6.1.2(postcss@8.5.32))(csso@5.0.5)(html-minifier-terser@7.2.0)(postcss@8.5.32)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@8.1.1)(svgo@3.3.5)
       '@ianvs/prettier-plugin-sort-imports':
         specifier: 4.7.1
-        version: 4.7.1(prettier@3.9.10)(supports-color@8.1.1)
+        version: 4.7.1(prettier@3.10.0)(supports-color@8.1.1)
       '@types/react':
         specifier: 19.3.0
         version: 19.3.0
@@ -288,8 +288,8 @@ importers:
         specifier: runtime:26.13.0
         version: runtime:26.13.0
       prettier:
-        specifier: 3.9.10
-        version: 3.9.10
+        specifier: 3.10.0
+        version: 3.10.0
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -5578,8 +5578,8 @@ packages:
     resolution: {integrity: sha512-EOgUMBazo7JNP4TDrd64TsooCiWzzo4143Ws8E8WYGEpn2PKpq+S4XRTDhuRTYHm3VKOpUZs7ZYZq7zSDuesqA==}
     engines: {node: '>=10'}
 
-  prettier@3.9.10:
-    resolution: {integrity: sha512-skGHTH1Yb9QvaTC4hWnRTzEYtCpApF0UMBPz+t/0ZPzP8ihefo/btKd+QA7pUE0fEwA1SbS/NmhyEcstdXOIdA==}
+  prettier@3.10.0:
+    resolution: {integrity: sha512-mBi4765LgjO1PFjlEs7pUeK0nb1bw71c+N4/ItfeUWNdY5cV2pRKaFpbbFRYmDJMO+5ZwzGxHRqHxFZna7iv5w==}
     engines: {node: '>=14'}
     hasBin: true
 
@@ -9205,13 +9205,13 @@ snapshots:
       react-dom: 19.3.1(react@19.3.1)
       react-hook-form: 7.91.0(@types/react@19.3.0)(react@19.3.1)
 
-  '@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.9.10)(supports-color@8.1.1)':
+  '@ianvs/prettier-plugin-sort-imports@4.7.1(prettier@3.10.0)(supports-color@8.1.1)':
     dependencies:
       '@babel/generator': 7.29.13
       '@babel/parser': 7.29.13
       '@babel/traverse': 7.29.13(supports-color@8.1.1)
       '@babel/types': 7.29.11
-      prettier: 3.9.10
+      prettier: 3.10.0
       semver: 7.8.6
     transitivePeerDependencies:
       - supports-color
@@ -13753,7 +13753,7 @@ snapshots:
     dependencies:
       punycode: 2.3.1
 
-  prettier@3.9.10: {}
+  prettier@3.10.0: {}
 
   pretty-error@4.0.0:
     dependencies:
