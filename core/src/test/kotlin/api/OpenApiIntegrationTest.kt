@@ -20,7 +20,9 @@
 package org.eclipse.apoapsis.ortserver.core.api
 
 import io.kotest.assertions.ktor.client.shouldHaveStatus
+import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -29,6 +31,9 @@ import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
@@ -38,6 +43,8 @@ import org.eclipse.apoapsis.ortserver.core.createJsonClient
 import org.eclipse.apoapsis.ortserver.core.plugins.configureOpenApi
 import org.eclipse.apoapsis.ortserver.core.testutils.TestConfig
 import org.eclipse.apoapsis.ortserver.core.testutils.ortServerTestApplication
+import org.eclipse.apoapsis.ortserver.core.utils.LOGGED_QUERY_PARAMETERS
+import org.eclipse.apoapsis.ortserver.core.utils.MASKED_QUERY_PARAMETERS
 import org.eclipse.apoapsis.ortserver.model.runs.repository.LicenseFindingCurationReason as ModelLicenseFindingCurationReason
 import org.eclipse.apoapsis.ortserver.shared.apimodel.LicenseFindingCurationReason
 import org.eclipse.apoapsis.ortserver.utils.system.ORT_SERVER_VERSION
@@ -95,5 +102,51 @@ class OpenApiIntegrationTest : WordSpec({
                         ModelLicenseFindingCurationReason.entries.map { it.name }
             }
         }
+
+        "only contain query parameters that are classified for the request log" {
+            ortServerTestApplication(
+                config = TestConfig.Test,
+                additionalConfigs = mapOf("jwt.issuer" to "https://example.org")
+            ) {
+                application { configureOpenApi() }
+
+                val response = createJsonClient().get("/swagger-ui/api.json")
+
+                response shouldHaveStatus 200
+
+                val queryParameters = collectQueryParameterNames(Json.parseToJsonElement(response.bodyAsText()))
+                val classifiedParameters = LOGGED_QUERY_PARAMETERS + MASKED_QUERY_PARAMETERS
+
+                withClue(
+                    "Add new query parameters either to LOGGED_QUERY_PARAMETERS, or to MASKED_QUERY_PARAMETERS if " +
+                        "their values can contain personal data or arbitrary text."
+                ) {
+                    (queryParameters - classifiedParameters).shouldBeEmpty()
+                }
+
+                withClue("Remove query parameters that no longer exist from the classification.") {
+                    (classifiedParameters - queryParameters).shouldBeEmpty()
+                }
+
+                withClue("Query parameters must not be both logged and masked.") {
+                    LOGGED_QUERY_PARAMETERS.intersect(MASKED_QUERY_PARAMETERS).shouldBeEmpty()
+                }
+            }
+        }
     }
 })
+
+/** Recursively collect the names of all query parameters defined in the given OpenAPI specification [element]. */
+private fun collectQueryParameterNames(element: JsonElement): Set<String> =
+    when (element) {
+        is JsonObject -> {
+            val name = (element["name"] as? JsonPrimitive)?.content
+            val isQueryParameter = (element["in"] as? JsonPrimitive)?.content == "query"
+
+            setOfNotNull(name.takeIf { isQueryParameter }) + element.values.flatMap(::collectQueryParameterNames)
+        }
+
+        is JsonArray -> element.flatMap(::collectQueryParameterNames).toSet()
+
+        else -> emptySet()
+    }
