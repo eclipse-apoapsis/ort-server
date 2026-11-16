@@ -36,13 +36,10 @@ import {
 import { queryClient } from '@/lib/query-client.ts';
 import { routeTree } from '@/routeTree.gen';
 
-// Configure the Hey API query client
+// Add the access token to the requests of the API client. The client takes its API URL from
+// `createClientConfig()` when it is created.
 client.setConfig({
-  baseURL: config.API_URL,
   auth: () => authRef.current?.user?.access_token,
-  headers: {
-    'X-Client-Type': 'ort-server-ui',
-  },
 });
 
 export interface RouterContext {
