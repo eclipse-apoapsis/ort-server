@@ -24,5 +24,12 @@ export default defineConfig({
   output: {
     path: './src/api',
   },
-  plugins: ['@hey-api/client-axios', '@tanstack/react-query', 'zod'],
+  plugins: [
+    {
+      name: '@hey-api/client-axios',
+      runtimeConfigPath: './src/lib/api-client-config.ts',
+    },
+    '@tanstack/react-query',
+    'zod',
+  ],
 });
