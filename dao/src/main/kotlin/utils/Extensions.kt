@@ -93,14 +93,13 @@ fun Collection<CompoundHierarchyId>.extractIds(level: HierarchyLevel): List<Long
 
 /**
  * Definition of a function type for generating query conditions based on accessible hierarchy elements. It is passed
- * the level in the hierarchy to filter by, a list with the IDs to be included together with their child elements, and
- * the filter itself to gain access to additional properties. The function returns an [Op] representing the condition.
- * The conditions for the different hierarchy levels are then combined using an `OR` operator.
+ * the [level] in the hierarchy to filter by and a list with the [IDs][ids] to be included together with their child
+ * elements. The function returns an [Op] representing the condition. The conditions for the different hierarchy levels
+ * are then combined using an `OR` operator.
  */
 typealias HierarchyConditionGenerator = (
     level: HierarchyLevel,
-    ids: List<CompoundHierarchyId>,
-    filter: HierarchyFilter
+    ids: List<CompoundHierarchyId>
 ) -> Op<Boolean>
 
 /**
@@ -117,7 +116,7 @@ fun HierarchyFilter.apply(
     // Always iterate over all levels to make sure that conditions for all levels are generated.
     val hierarchyCondition = HierarchyLevel.DEFINED_LEVELS_TOP_DOWN.fold(Op.FALSE as Op<Boolean>) { op, level ->
         val ids = transitiveIncludes[level].orEmpty()
-        val condition = generator(level, ids, this@apply)
+        val condition = generator(level, ids)
         op or condition
     }
 

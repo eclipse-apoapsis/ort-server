@@ -59,7 +59,7 @@ class DaoProductRepository(private val db: Database) : ProductRepository {
         db.transaction {
             val filterCondition = filter?.matchesAny(ProductsTable.name, ProductsTable.description) ?: Op.TRUE
 
-            val builder = hierarchyFilter.apply(filterCondition) { level, ids, _ ->
+            val builder = hierarchyFilter.apply(filterCondition) { level, ids ->
                 generateHierarchyCondition(level, ids, hierarchyFilter)
             }
 
