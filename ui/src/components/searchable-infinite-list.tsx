@@ -148,8 +148,12 @@ export function SearchableInfiniteList<TItem>({
               </CommandGroup>
             )}
             {footer}
-            {/* Scrolling this into view is what asks for the next page. */}
-            <div ref={ref} />
+            {/* Scrolling this into view is what asks for the next page. It overlaps the last
+                entries instead of following them, as an empty element at the very end only touches
+                the edge of the list when it is scrolled down fully, and browsers do not reliably
+                count that as in view once scaling makes the positions fractional. The negative
+                margin keeps it from adding to the height of the list. */}
+            <div ref={ref} className='pointer-events-none -mt-16 h-16' />
             {isFetchingNextPage && (
               <div className='text-muted-foreground py-2 text-center text-sm'>
                 Loading more...
