@@ -83,7 +83,7 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
                 filter?.matchesAny(RepositoriesTable.name, RepositoriesTable.url, RepositoriesTable.description)
                     ?: Op.TRUE
 
-            val builder = hierarchyFilter.apply(filterCondition) { level, ids, _ ->
+            val builder = hierarchyFilter.apply(filterCondition) { level, ids ->
                 generateHierarchyCondition(level, ids)
             }
 

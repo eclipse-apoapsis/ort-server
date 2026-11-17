@@ -174,8 +174,8 @@ private fun findByIdentifier(
 
     val identifierCondition = concatenatedIdentifier.applyIRegex(identifier)
 
-    val whereClause = hierarchyFilter.apply(identifierCondition) { level, ids, filter ->
-        generateHierarchyCondition(level, ids, filter)
+    val whereClause = hierarchyFilter.apply(identifierCondition) { level, ids ->
+        generateHierarchyCondition(level, ids, hierarchyFilter)
     }
 
     return query.select(OrtRunsTable.columns + IdentifiersTable.columns).where(whereClause).map { row ->
@@ -210,8 +210,8 @@ private fun findByPurl(
     val effectivePurl = createEffectivePurlExpression()
     val purlCondition = effectivePurl.applyIRegex(purl)
 
-    val whereClause = hierarchyFilter.apply(purlCondition) { level, ids, filter ->
-        generateHierarchyCondition(level, ids, filter)
+    val whereClause = hierarchyFilter.apply(purlCondition) { level, ids ->
+        generateHierarchyCondition(level, ids, hierarchyFilter)
     }
 
     return query.select(OrtRunsTable.columns + IdentifiersTable.columns + effectivePurl).where(whereClause).map { row ->
@@ -260,8 +260,8 @@ private fun findVulnerabilitiesWithIdentifier(
 ): List<RunWithVulnerability> {
     val vulnerabilityCondition = VulnerabilitiesTable.externalId.applyIRegex(externalId)
 
-    val whereClause = hierarchyFilter.apply(vulnerabilityCondition) { level, ids, filter ->
-        generateHierarchyCondition(level, ids, filter)
+    val whereClause = hierarchyFilter.apply(vulnerabilityCondition) { level, ids ->
+        generateHierarchyCondition(level, ids, hierarchyFilter)
     }
 
     return query.select(
@@ -302,8 +302,8 @@ private fun findVulnerabilitiesWithPurl(
     val effectivePurl = createEffectivePurlExpression()
     val vulnerabilityCondition = VulnerabilitiesTable.externalId.applyIRegex(externalId)
 
-    val whereClause = hierarchyFilter.apply(vulnerabilityCondition) { level, ids, filter ->
-        generateHierarchyCondition(level, ids, filter)
+    val whereClause = hierarchyFilter.apply(vulnerabilityCondition) { level, ids ->
+        generateHierarchyCondition(level, ids, hierarchyFilter)
     }
 
     return queryWithPackages.select(
