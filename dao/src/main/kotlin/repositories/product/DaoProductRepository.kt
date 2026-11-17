@@ -23,9 +23,9 @@ import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.transactionCatching
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
-import org.eclipse.apoapsis.ortserver.dao.utils.applyIRegex
 import org.eclipse.apoapsis.ortserver.dao.utils.extractIds
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
+import org.eclipse.apoapsis.ortserver.dao.utils.matchesAny
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.repositories.ProductRepository
@@ -53,16 +53,14 @@ class DaoProductRepository(private val db: Database) : ProductRepository {
 
     override suspend fun list(
         parameters: ListQueryParameters,
-        nameFilter: FilterParameter?,
+        filter: FilterParameter?,
         hierarchyFilter: HierarchyFilter
     ) =
         db.transaction {
-            val nameCondition = nameFilter?.let {
-                ProductsTable.name.applyIRegex(it.value)
-            } ?: Op.TRUE
+            val filterCondition = filter?.matchesAny(ProductsTable.name, ProductsTable.description) ?: Op.TRUE
 
-            val builder = hierarchyFilter.apply(nameCondition) { level, ids, filter ->
-                generateHierarchyCondition(level, ids, filter)
+            val builder = hierarchyFilter.apply(filterCondition) { level, ids, _ ->
+                generateHierarchyCondition(level, ids, hierarchyFilter)
             }
 
             ProductDao.listQuery(parameters, ProductDao::mapToModel, builder)
@@ -81,7 +79,8 @@ class DaoProductRepository(private val db: Database) : ProductRepository {
         db.transaction {
             ProductDao.listQuery(parameters, ProductDao::mapToModel) {
                 if (filter != null) {
-                    ProductsTable.organizationId eq organizationId and ProductsTable.name.applyIRegex(filter.value)
+                    ProductsTable.organizationId eq organizationId and
+                        filter.matchesAny(ProductsTable.name, ProductsTable.description)
                 } else {
                     ProductsTable.organizationId eq organizationId
                 }

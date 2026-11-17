@@ -48,6 +48,7 @@ import org.eclipse.apoapsis.ortserver.utils.test.Integration
 
 import org.jetbrains.exposed.v1.dao.exceptions.EntityNotFoundException
 
+@Suppress("LargeClass")
 class DaoRepositoryRepositoryTest : StringSpec({
     tags(Integration)
 
@@ -262,6 +263,27 @@ class DaoRepositoryRepositoryTest : StringSpec({
             data = listOf(namedRepository),
             params = ListQueryParameters.DEFAULT,
             totalCount = 1
+        )
+    }
+
+    "list should filter repositories by name, URL or description" {
+        val repoWithMatchingDescription = fixtures.createRepository(
+            url = "https://example.com/repo1.git",
+            description = "Payment services"
+        )
+        val repoWithMatchingName = fixtures.createRepository(
+            url = "https://example.com/repo2.git",
+            name = "Payments",
+            description = null
+        )
+        fixtures.createRepository(url = "https://example.com/repo3.git", description = "Logistics")
+
+        val parameters = ListQueryParameters(sortFields = listOf(OrderField("url", OrderDirection.ASCENDING)))
+
+        repositoryRepository.list(parameters, FilterParameter("payment")) shouldBe ListQueryResult(
+            data = listOf(repoWithMatchingDescription, repoWithMatchingName),
+            params = parameters,
+            totalCount = 2
         )
     }
 
@@ -534,6 +556,35 @@ class DaoRepositoryRepositoryTest : StringSpec({
                     params = parameters,
                     totalCount = 1
                 )
+    }
+
+    "listForProduct should filter repositories by name, URL or description" {
+        val otherProd = fixtures.createProduct(name = "otherProduct")
+
+        val repoWithMatchingDescription = fixtures.createRepository(
+            url = "https://example.com/repo1.git",
+            description = "Payment services"
+        )
+        val repoWithMatchingName = fixtures.createRepository(
+            url = "https://example.com/repo2.git",
+            name = "Payments",
+            description = null
+        )
+        fixtures.createRepository(url = "https://example.com/repo3.git", description = "Logistics")
+        fixtures.createRepository(
+            url = "https://example.com/repo4.git",
+            productId = otherProd.id,
+            description = "Payment services"
+        )
+
+        val parameters = ListQueryParameters(sortFields = listOf(OrderField("url", OrderDirection.ASCENDING)))
+
+        repositoryRepository.listForProduct(productId, parameters, FilterParameter("payment")) shouldBe
+            ListQueryResult(
+                data = listOf(repoWithMatchingDescription, repoWithMatchingName),
+                params = parameters,
+                totalCount = 2
+            )
     }
 
     "update should update an entry in the database" {

@@ -35,16 +35,19 @@ interface ProductRepository {
     suspend fun get(id: Long): Product?
 
     /**
-     * List all products according to the given [parameters]. Optionally, a [nameFilter] on the product name and a
-     * [hierarchyFilter] can be provided.
+     * List all products according to the given [parameters]. Optionally, a [filter] on the product name or description
+     * and a [hierarchyFilter] can be provided.
      */
     suspend fun list(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
-        nameFilter: FilterParameter? = null,
+        filter: FilterParameter? = null,
         hierarchyFilter: HierarchyFilter = HierarchyFilter.WILDCARD
     ): ListQueryResult<Product>
 
-    /** List all products for an [organization][organizationId] according to the given [parameters]. */
+    /**
+     * List all products for an [organization][organizationId] according to the given [parameters]. Optionally, a
+     * [filter] on the product name or description can be provided.
+     */
     suspend fun listForOrganization(
         organizationId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,

@@ -49,8 +49,8 @@ interface RepositoryRepository {
     suspend fun getHierarchy(id: Long): Hierarchy
 
     /**
-     * List all repositories according to the given [parameters]. Optionally, a [filter] on the repository name or URL
-     * and a [hierarchyFilter] can be provided.
+     * List all repositories according to the given [parameters]. Optionally, a [filter] on the repository name, URL or
+     * description and a [hierarchyFilter] can be provided.
      */
     suspend fun list(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
@@ -58,7 +58,10 @@ interface RepositoryRepository {
         hierarchyFilter: HierarchyFilter = HierarchyFilter.WILDCARD
     ): ListQueryResult<Repository>
 
-    /** List all repositories for a [product][productId] according to the given [parameters]. */
+    /**
+     * List all repositories for a [product][productId] according to the given [parameters]. Optionally, a [filter] on
+     * the repository name, URL or description can be provided.
+     */
     suspend fun listForProduct(
         productId: Long,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
