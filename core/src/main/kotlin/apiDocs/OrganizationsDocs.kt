@@ -88,7 +88,7 @@ val getOrganizations: RouteConfig.() -> Unit = {
         standardListQueryParameters()
 
         queryParameter<String>("filter") {
-            description = "A regular expression to filter organizations by name."
+            description = "A regular expression to filter organizations by name or description."
         }
     }
 
@@ -224,7 +224,7 @@ val getOrganizationProducts: RouteConfig.() -> Unit = {
         standardListQueryParameters()
 
         queryParameter<String>("filter") {
-            description = "A regular expression to filter products by name."
+            description = "A regular expression to filter products by name or description."
         }
     }
 

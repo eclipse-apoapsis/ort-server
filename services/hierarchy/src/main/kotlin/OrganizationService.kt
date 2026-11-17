@@ -110,7 +110,7 @@ class OrganizationService(
 
     /**
      * List all organizations that are visible to the given [userId] with the Keycloak ID [userSub] according to the
-     * given [parameters] and [filter].
+     * given [parameters] and [filter], which is applied to the organization name or description.
      */
     suspend fun listOrganizationsForUser(
         userId: String,
@@ -138,7 +138,8 @@ class OrganizationService(
 
     /**
      * List all products for an [organization][organizationId] that are visible to the user with the given [userId]
-     * and the Keycloak ID [userSub], applying the given [parameters] and optional [filter].
+     * and the Keycloak ID [userSub], applying the given [parameters] and optional [filter] on the product name or
+     * description.
      */
     suspend fun listProductsForOrganizationAndUser(
         organizationId: Long,
