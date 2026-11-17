@@ -155,6 +155,20 @@ class DaoOrganizationRepositoryTest : StringSpec({
         )
     }
 
+    "list should filter organizations by name or description" {
+        val orgWithMatchingDescription = organizationRepository.create("org1", "Payment services")
+        val orgWithMatchingName = organizationRepository.create("payments", null)
+        organizationRepository.create("org2", "Logistics")
+
+        val parameters = ListQueryParameters(sortFields = listOf(OrderField("name", OrderDirection.ASCENDING)))
+
+        organizationRepository.list(parameters, FilterParameter("payment")) shouldBe ListQueryResult(
+            data = listOf(orgWithMatchingDescription, orgWithMatchingName),
+            params = parameters,
+            totalCount = 2
+        )
+    }
+
     "list should apply a hierarchy filter" {
         val createdOrg1 = organizationRepository.create("org1", "description1")
         val org1Id = CompoundHierarchyId.forOrganization(OrganizationId(createdOrg1.id))

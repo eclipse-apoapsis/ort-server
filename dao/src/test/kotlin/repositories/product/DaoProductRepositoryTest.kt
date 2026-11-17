@@ -120,7 +120,7 @@ class DaoProductRepositoryTest : StringSpec({
         fixtures.createProduct("product-gateway")
         fixtures.createProduct("core-service")
 
-        productRepository.list(nameFilter = FilterParameter("product$")) shouldBe ListQueryResult(
+        productRepository.list(filter = FilterParameter("product$")) shouldBe ListQueryResult(
             data = listOf(
                 Product(prod1.id, orgId, prod1.name, prod1.description),
                 Product(prod2.id, orgId, prod2.name, prod2.description)
@@ -136,12 +136,26 @@ class DaoProductRepositoryTest : StringSpec({
         fixtures.createProduct("user-product")
         fixtures.createProduct("name")
 
-        productRepository.list(nameFilter = FilterParameter("^product")) shouldBe ListQueryResult(
+        productRepository.list(filter = FilterParameter("^product")) shouldBe ListQueryResult(
             data = listOf(
                 Product(prod1.id, orgId, prod1.name, prod1.description),
                 Product(prod2.id, orgId, prod2.name, prod2.description)
             ),
             params = ListQueryParameters.DEFAULT,
+            totalCount = 2
+        )
+    }
+
+    "list should filter products by name or description" {
+        val prodWithMatchingDescription = fixtures.createProduct("prod1", "Payment services")
+        val prodWithMatchingName = productRepository.create("payments", null, orgId)
+        fixtures.createProduct("prod2", "Logistics")
+
+        val parameters = ListQueryParameters(sortFields = listOf(OrderField("name", OrderDirection.ASCENDING)))
+
+        productRepository.list(parameters, FilterParameter("payment")) shouldBe ListQueryResult(
+            data = listOf(prodWithMatchingName, prodWithMatchingDescription),
+            params = parameters,
             totalCount = 2
         )
     }
@@ -325,6 +339,24 @@ class DaoProductRepositoryTest : StringSpec({
             params = ListQueryParameters.DEFAULT,
             totalCount = 1
         )
+    }
+
+    "listForOrganization should filter products by name or description" {
+        val otherOrgId = fixtures.createOrganization(name = "otherOrg").id
+
+        val prodWithMatchingDescription = fixtures.createProduct("prod1", "Payment services")
+        val prodWithMatchingName = productRepository.create("payments", null, orgId)
+        fixtures.createProduct("prod2", "Logistics")
+        fixtures.createProduct("prod3", "Payment services", otherOrgId)
+
+        val parameters = ListQueryParameters(sortFields = listOf(OrderField("name", OrderDirection.ASCENDING)))
+
+        productRepository.listForOrganization(orgId, parameters, FilterParameter("payment")) shouldBe
+            ListQueryResult(
+                data = listOf(prodWithMatchingName, prodWithMatchingDescription),
+                params = parameters,
+                totalCount = 2
+            )
     }
 
     "listForOrganization should filter with regex ending pattern" {

@@ -122,7 +122,7 @@ class OrganizationService(
 
         return organizationRepository.list(
             parameters = parameters,
-            nameFilter = filter,
+            filter = filter,
             hierarchyFilter = orgFilter
         )
     }

@@ -31,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.Severity
 import org.eclipse.apoapsis.ortserver.model.util.ComparisonOperator
+import org.eclipse.apoapsis.ortserver.model.util.FilterParameter
 import org.eclipse.apoapsis.ortserver.model.util.HierarchyFilter
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.ListQueryResult
@@ -50,6 +51,7 @@ import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.Table
 import org.jetbrains.exposed.v1.core.TextColumnType
 import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.compoundOr
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.IdTable
 import org.jetbrains.exposed.v1.core.eq
@@ -227,6 +229,13 @@ fun Expression<String>.applyFilter(operator: ComparisonOperator, value: String):
 /** Apply the given [value] to filter this column by using the ~* operator. */
 fun Expression<String>.applyIRegex(value: String): Op<Boolean> =
     InsensitiveRegexOp(this, QueryParameter(value, TextColumnType()))
+
+/**
+ * Generate a condition that matches the regular expression of this filter case-insensitively against any of the
+ * given [columns]. Null values never match.
+ */
+fun FilterParameter.matchesAny(vararg columns: Expression<out String?>): Op<Boolean> =
+    columns.map { InsensitiveRegexOp(it, QueryParameter(value, TextColumnType())) }.compoundOr()
 
 /**
  * Apply the given [operator] and filter [values] to filter this column by. This is an overload of the

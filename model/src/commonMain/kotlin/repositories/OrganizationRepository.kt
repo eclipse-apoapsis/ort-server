@@ -35,12 +35,12 @@ interface OrganizationRepository {
     suspend fun get(id: Long): Organization?
 
     /**
-     * List all organizations according to the given [parameters]. Optionally, a [nameFilter] on the product name and a
-     * [hierarchyFilter] can be provided.
+     * List all organizations according to the given [parameters]. Optionally, a [filter] on the organization name or
+     * description and a [hierarchyFilter] can be provided.
      */
     suspend fun list(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
-        nameFilter: FilterParameter? = null,
+        filter: FilterParameter? = null,
         hierarchyFilter: HierarchyFilter = HierarchyFilter.WILDCARD
     ): ListQueryResult<Organization>
 

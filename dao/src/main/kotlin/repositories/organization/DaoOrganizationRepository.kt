@@ -23,9 +23,9 @@ import org.eclipse.apoapsis.ortserver.dao.getEntityOrNull
 import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.transactionCatching
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
-import org.eclipse.apoapsis.ortserver.dao.utils.applyIRegex
 import org.eclipse.apoapsis.ortserver.dao.utils.extractIds
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
+import org.eclipse.apoapsis.ortserver.dao.utils.matchesAny
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
 import org.eclipse.apoapsis.ortserver.model.repositories.OrganizationRepository
@@ -51,16 +51,14 @@ class DaoOrganizationRepository(private val db: Database) : OrganizationReposito
 
     override suspend fun list(
         parameters: ListQueryParameters,
-        nameFilter: FilterParameter?,
+        filter: FilterParameter?,
         hierarchyFilter: HierarchyFilter
     ) =
         db.transaction {
-            val nameCondition = nameFilter?.let {
-                OrganizationsTable.name.applyIRegex(it.value)
-            } ?: Op.TRUE
+            val filterCondition = filter?.matchesAny(OrganizationsTable.name, OrganizationsTable.description) ?: Op.TRUE
 
-            val builder = hierarchyFilter.apply(nameCondition) { level, ids, filter ->
-                generateHierarchyCondition(level, ids, filter)
+            val builder = hierarchyFilter.apply(filterCondition) { level, ids, _ ->
+                generateHierarchyCondition(level, ids, hierarchyFilter)
             }
 
             OrganizationDao.listQuery(parameters, OrganizationDao::mapToModel, builder)

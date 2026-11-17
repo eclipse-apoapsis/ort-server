@@ -24,9 +24,9 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.product.ProductsTable
 import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.transactionCatching
 import org.eclipse.apoapsis.ortserver.dao.utils.apply
-import org.eclipse.apoapsis.ortserver.dao.utils.applyIRegex
 import org.eclipse.apoapsis.ortserver.dao.utils.extractIds
 import org.eclipse.apoapsis.ortserver.dao.utils.listQuery
+import org.eclipse.apoapsis.ortserver.dao.utils.matchesAny
 import org.eclipse.apoapsis.ortserver.model.CompoundHierarchyId
 import org.eclipse.apoapsis.ortserver.model.Hierarchy
 import org.eclipse.apoapsis.ortserver.model.HierarchyLevel
@@ -38,14 +38,10 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OptionalValue
 
 import org.jetbrains.exposed.v1.core.Op
-import org.jetbrains.exposed.v1.core.TextColumnType
 import org.jetbrains.exposed.v1.core.and
-import org.jetbrains.exposed.v1.core.castTo
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.inSubQuery
-import org.jetbrains.exposed.v1.core.isNotNull
-import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.select
@@ -83,13 +79,9 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
         hierarchyFilter: HierarchyFilter
     ) =
         db.transaction {
-            val filterCondition = filter?.let {
-                RepositoriesTable.url.applyIRegex(it.value) or
-                    (
-                        RepositoriesTable.name.isNotNull() and
-                            RepositoriesTable.name.castTo(TextColumnType()).applyIRegex(it.value)
-                    )
-            } ?: Op.TRUE
+            val filterCondition =
+                filter?.matchesAny(RepositoriesTable.name, RepositoriesTable.url, RepositoriesTable.description)
+                    ?: Op.TRUE
 
             val builder = hierarchyFilter.apply(filterCondition) { level, ids, _ ->
                 generateHierarchyCondition(level, ids)
@@ -103,13 +95,7 @@ class DaoRepositoryRepository(private val db: Database) : RepositoryRepository {
             RepositoryDao.listQuery(parameters, RepositoryDao::mapToModel) {
                 if (filter != null) {
                     RepositoriesTable.productId eq productId and
-                        (
-                            RepositoriesTable.url.applyIRegex(filter.value) or
-                                (
-                                    RepositoriesTable.name.isNotNull() and
-                                        RepositoriesTable.name.castTo(TextColumnType()).applyIRegex(filter.value)
-                                )
-                        )
+                        filter.matchesAny(RepositoriesTable.name, RepositoriesTable.url, RepositoriesTable.description)
                 } else {
                     RepositoriesTable.productId eq productId
                 }
