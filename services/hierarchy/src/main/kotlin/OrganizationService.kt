@@ -138,13 +138,13 @@ class OrganizationService(
 
     /**
      * List all products for an [organization][organizationId] that are visible to the user with the given [userId]
-     * and the Keycloak ID [userSub], applying the given [parameters] and optional [nameFilter].
+     * and the Keycloak ID [userSub], applying the given [parameters] and optional [filter].
      */
     suspend fun listProductsForOrganizationAndUser(
         organizationId: Long,
         userId: String,
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
-        nameFilter: FilterParameter? = null,
+        filter: FilterParameter? = null,
         userSub: String? = null
     ): ListQueryResult<Product> {
         val productFilter = authorizationService.filterHierarchyIds(
@@ -154,7 +154,7 @@ class OrganizationService(
             userSub
         )
 
-        return productRepository.list(parameters, nameFilter, productFilter)
+        return productRepository.list(parameters, filter, productFilter)
     }
 
     /** Update an organization by [organizationId] with the [present][OptionalValue.Present] values. */
