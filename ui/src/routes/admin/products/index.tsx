@@ -130,7 +130,7 @@ const ProductsComponent = () => {
     // A hidden column whose filter is shown in the header of the cards.
     columnHelper.accessor('name', {
       id: 'name',
-      header: 'Name',
+      header: 'Products',
       meta: {
         filter: {
           filterVariant: 'regex',
