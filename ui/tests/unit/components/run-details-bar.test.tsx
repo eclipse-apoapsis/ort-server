@@ -24,11 +24,12 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { OrtRun } from '@/api';
 import { RunDetailsBar } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/-components/run-details-bar';
+import type { RunNeighbours } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/-components/run-neighbours';
 import { createOrtRun } from '../fixtures/create-run';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
 
 const mocks = vi.hoisted(() => ({
-  allRunIndexes: [1, 3, 5],
+  neighbours: { previous: 1, next: 5 } as RunNeighbours,
   canTriggerRun: true,
   ortRun: undefined as OrtRun | undefined,
 }));
@@ -38,18 +39,14 @@ vi.mock('@tanstack/react-query', async (importOriginal) => {
 
   return {
     ...actual,
-    useSuspenseQuery: (options: { queryKey: string[] }) => ({
-      data:
-        options.queryKey[0] === 'repository-runs'
-          ? mocks.allRunIndexes
-          : mocks.ortRun,
-    }),
+    useQuery: () => ({ data: mocks.neighbours }),
+    useSuspenseQuery: () => ({ data: mocks.ortRun }),
   };
 });
 
 vi.mock('@/api/@tanstack/react-query.gen', () => ({
-  getRepositoryRunsOptions: () => ({ queryKey: ['repository-runs'] }),
   getRepositoryRunOptions: () => ({ queryKey: ['repository-run'] }),
+  getRepositoryRunsQueryKey: () => [{ _id: 'getRepositoryRuns' }],
 }));
 
 vi.mock('@/hooks/use-authorization', () => ({
@@ -107,7 +104,7 @@ const renderBar = (runIndex: number, suffix = '/config?tab=jobs') => {
 
 describe('RunDetailsBar', () => {
   beforeEach(() => {
-    mocks.allRunIndexes = [1, 3, 5];
+    mocks.neighbours = { previous: 1, next: 5 };
     mocks.canTriggerRun = true;
   });
 
@@ -133,12 +130,16 @@ describe('RunDetailsBar', () => {
   });
 
   it.each([
-    { runIndex: 1, name: 'Previous' },
-    { runIndex: 5, name: 'Next' },
+    { neighbours: { previous: null, next: 3 }, name: 'Previous' },
+    { neighbours: { previous: 3, next: null }, name: 'Next' },
+    { neighbours: undefined, name: 'Previous' },
+    { neighbours: undefined, name: 'Next' },
   ])(
-    'disables the $name link at the run boundary',
-    async ({ runIndex, name }) => {
-      renderBar(runIndex, '');
+    'disables the $name link without a run to go to',
+    async ({ neighbours, name }) => {
+      mocks.neighbours = neighbours as RunNeighbours;
+
+      renderBar(3, '');
 
       expect((await screen.findByText(name)).closest('a')).toHaveAttribute(
         'aria-disabled',

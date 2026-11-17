@@ -17,14 +17,11 @@
  * License-Filename: LICENSE
  */
 
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useQuery, useSuspenseQuery } from '@tanstack/react-query';
 import { getRouteApi, Link, useLocation } from '@tanstack/react-router';
 import { ArrowBigLeft, ArrowBigRight, ArrowBigUp, Repeat } from 'lucide-react';
 
-import {
-  getRepositoryRunOptions,
-  getRepositoryRunsOptions,
-} from '@/api/@tanstack/react-query.gen';
+import { getRepositoryRunOptions } from '@/api/@tanstack/react-query.gen';
 import { ActionTooltipTrigger } from '@/components/action-tooltip-trigger';
 import { RunFavoriteButton } from '@/components/favorite-button';
 import { OrtRunJobStatus } from '@/components/ort-run-job-status';
@@ -43,6 +40,7 @@ import { config } from '@/config';
 import { getStatusBackgroundColor } from '@/helpers/get-status-class';
 import { useRepositoryPermission } from '@/hooks/use-authorization';
 import { cn } from '@/lib/utils';
+import { runNeighboursOptions } from './run-neighbours';
 
 type RunDetailsBarProps = {
   className?: string;
@@ -57,21 +55,14 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
   const location = useLocation();
   const pollInterval = config.pollInterval;
 
-  // Because the list of run indexes for a repository can be discontinuous
-  // (due to run deletions), fetch and sort all run indexes to determine
-  // the previous and next runs.
-  const { data: allRunIndexes } = useSuspenseQuery({
-    ...getRepositoryRunsOptions({
-      path: {
-        repositoryId: Number.parseInt(params.repoId),
-      },
-      query: {
-        limit: 100,
-        sort: '-index',
-      },
-    }),
-    select: (data) => data.data.map((run) => run.index).sort((a, b) => a - b),
-  });
+  const currentIndex = Number.parseInt(params.runIndex);
+
+  // Run indexes can have gaps where runs were deleted, so the previous and next runs are looked up
+  // instead of counted. They are not waited for, so that moving to another run does not suspend the
+  // page, and the links stay disabled until they are known.
+  const { data: neighbours } = useQuery(
+    runNeighboursOptions(Number.parseInt(params.repoId), currentIndex)
+  );
 
   const { data: ortRun } = useSuspenseQuery({
     ...getRepositoryRunOptions({
@@ -96,15 +87,8 @@ export const RunDetailsBar = ({ className }: RunDetailsBarProps) => {
     'TRIGGER_ORT_RUN'
   );
 
-  const currentIndex = Number.parseInt(params.runIndex);
-  const currentPosition = allRunIndexes.indexOf(currentIndex);
-
-  const previousIndex =
-    currentPosition > 0 ? allRunIndexes[currentPosition - 1] : null;
-  const nextIndex =
-    currentPosition < allRunIndexes.length - 1
-      ? allRunIndexes[currentPosition + 1]
-      : null;
+  const previousIndex = neighbours?.previous ?? null;
+  const nextIndex = neighbours?.next ?? null;
 
   const hasPrevious = previousIndex !== null;
   const hasNext = nextIndex !== null;
