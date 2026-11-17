@@ -161,7 +161,7 @@ const ProductsComponent = () => {
     <Card>
       <CardHeader>
         <CardTitle>
-          Products ({allProducts.pagination.totalCount} in total
+          All Products ({allProducts.pagination.totalCount} in total
           {nameFilter && `, ${data.pagination.totalCount} matching filters`})
         </CardTitle>
         <CardDescription className='sr-only'>

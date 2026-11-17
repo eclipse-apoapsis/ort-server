@@ -204,7 +204,7 @@ const RepositoriesComponent = () => {
     <Card>
       <CardHeader>
         <CardTitle>
-          Repositories ({allRepositories.pagination.totalCount} in total
+          All Repositories ({allRepositories.pagination.totalCount} in total
           {urlFilter && `, ${data.pagination.totalCount} matching filters`})
         </CardTitle>
         <CardDescription className='sr-only'>
