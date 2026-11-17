@@ -87,7 +87,9 @@ describe('admin repositories table', () => {
   it('queries the page from the URL and shows the number of all repositories', async () => {
     renderRepositories('?page=2&pageSize=20');
 
-    expect(await screen.findByText('Repositories (57 in total)')).toBeVisible();
+    expect(
+      await screen.findByText('All Repositories (57 in total)')
+    ).toBeVisible();
     expect(
       mocks.getRepositories.mock.calls.map(([options]) => options.query)
     ).toContainEqual({ limit: 20, offset: 20 });
@@ -97,7 +99,9 @@ describe('admin repositories table', () => {
     renderRepositories('?filter=shop');
 
     expect(
-      await screen.findByText('Repositories (57 in total, 4 matching filters)')
+      await screen.findByText(
+        'All Repositories (57 in total, 4 matching filters)'
+      )
     ).toBeVisible();
     expect(
       mocks.getRepositories.mock.calls.map(([options]) => options.query)

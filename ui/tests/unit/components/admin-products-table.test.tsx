@@ -80,7 +80,7 @@ describe('admin products table', () => {
   it('queries the page from the URL and shows the number of all products', async () => {
     renderProducts('?page=3&pageSize=20');
 
-    expect(await screen.findByText('Products (42 in total)')).toBeVisible();
+    expect(await screen.findByText('All Products (42 in total)')).toBeVisible();
     expect(
       mocks.getProducts.mock.calls.map(([options]) => options.query)
     ).toContainEqual({ limit: 20, offset: 40 });
@@ -90,7 +90,7 @@ describe('admin products table', () => {
     renderProducts('?filter=shop');
 
     expect(
-      await screen.findByText('Products (42 in total, 3 matching filters)')
+      await screen.findByText('All Products (42 in total, 3 matching filters)')
     ).toBeVisible();
     expect(
       mocks.getProducts.mock.calls.map(([options]) => options.query)
