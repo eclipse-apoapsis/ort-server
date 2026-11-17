@@ -170,10 +170,10 @@ const RepositoriesComponent = () => {
       cell: ({ row }) => <RepositoryCard repository={row.original} />,
     }),
     // A hidden column whose filter is shown in the header of the cards. The filter also matches
-    // the repository name.
+    // the repository name and description.
     columnHelper.accessor('url', {
       id: 'url',
-      header: 'Name or URL',
+      header: 'Repositories',
       meta: {
         filter: {
           filterVariant: 'regex',
