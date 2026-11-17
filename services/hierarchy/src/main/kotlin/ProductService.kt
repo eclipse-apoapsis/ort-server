@@ -116,7 +116,7 @@ class ProductService(
 
     /**
      * List all products on the server according to the given [parameters] and an optional [filter] on the product
-     * name. No hierarchy filter is applied, so this function is meant for server administrators.
+     * name or description. No hierarchy filter is applied, so this function is meant for server administrators.
      */
     suspend fun listProducts(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
@@ -136,8 +136,8 @@ class ProductService(
 
     /**
      * List all repositories for a [product][productId] that are visible to a specific [user][userId] with the
-     * Keycloak ID [userSub] according to the given [parameters] and [filter], which is applied to the repository name
-     * or URL.
+     * Keycloak ID [userSub] according to the given [parameters] and [filter], which is applied to the repository name,
+     * URL or description.
      */
     suspend fun listRepositoriesForProductAndUser(
         productId: Long,

@@ -123,7 +123,8 @@ class RepositoryService(
 
     /**
      * List all repositories on the server according to the given [parameters] and an optional [filter] on the
-     * repository name or URL. No hierarchy filter is applied, so this function is meant for server administrators.
+     * repository name, URL or description. No hierarchy filter is applied, so this function is meant for server
+     * administrators.
      */
     suspend fun listRepositories(
         parameters: ListQueryParameters = ListQueryParameters.DEFAULT,
