@@ -240,9 +240,9 @@ export const includesExcludesField = {
   label: 'Includes and excludes',
   description: (
     <>
-      Exclude scopes and paths from this run, or include only some of them.
-      These apply in addition to the excludes and includes in the repository's{' '}
-      <InlineCode>.ort.yml</InlineCode>.
+      Exclude scopes and paths from analyzed projects, or include only some of
+      them. These apply in addition to the excludes and includes in the
+      repository's <InlineCode>.ort.yml</InlineCode>.
     </>
   ),
 } as const satisfies JobConfigField;
