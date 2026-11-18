@@ -45,7 +45,9 @@ dependencies {
  */
 val jdkJavaOptions = listOf(
     // Required by GitConfigFileProvider to clear the JGit HTTP authentication cache.
-    "--add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED"
+    "--add-opens=java.base/sun.net.www.protocol.http=ALL-UNNAMED",
+    // Work around the Java2Shell vulnerability, see https://calif.io/java4shell.
+    "-XX:-UseBASE64Intrinsics"
 )
 
 tinyJib {
