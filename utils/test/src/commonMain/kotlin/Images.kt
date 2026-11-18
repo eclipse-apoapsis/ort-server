@@ -29,6 +29,6 @@ object Images {
     const val FLOCI = "floci/floci:2.4.0"
     const val KEYCLOAK = "quay.io/keycloak/keycloak:26.8.2"
     const val POSTGRES = "postgres:18.7"
-    const val RABBITMQ = "rabbitmq:4.4.0"
+    const val RABBITMQ = "rabbitmq:4.4.1"
     const val VAULT = "hashicorp/vault:2.2.2"
 }
