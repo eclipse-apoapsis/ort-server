@@ -49,7 +49,7 @@ class OrtServerJsonEncoderTest : WordSpec({
             json.jsonObject["throwable"]?.jsonPrimitive.shouldNotBeNull {
                 content shouldStartWith "java.lang.RuntimeException: something went wrong"
                 content shouldContain "Caused by: java.lang.IllegalStateException: the root cause"
-                content shouldContain "\tat "
+                content shouldContain "\\tat "
             }
         }
 
@@ -58,7 +58,7 @@ class OrtServerJsonEncoderTest : WordSpec({
             val json = encodeEvent(message = "boom", throwable = RuntimeException("boom"))
 
             json.jsonObject["throwable"]?.jsonPrimitive?.content.shouldNotBeNull {
-                this shouldContain "\n"
+                this shouldContain "\\n"
             }
         }
 
