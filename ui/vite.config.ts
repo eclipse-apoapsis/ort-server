@@ -19,14 +19,44 @@
 
 /// <reference types="vitest/config" />
 
+import { execFile } from 'child_process';
 import path from 'path';
 
 import babel from '@rolldown/plugin-babel';
 import { tanstackRouter } from '@tanstack/router-vite-plugin';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 
-// https://vitejs.dev/config/
+// Regenerate the index of the help documents when one of them changes during development. The
+// script leaves the index alone if it is up to date.
+const helpIndex = (): Plugin => ({
+  name: 'help-index',
+  configureServer(server) {
+    const helpDir = path.resolve(import.meta.dirname, 'src/help');
+
+    server.watcher.on('all', (_event, file) => {
+      if (
+        path.dirname(file) === helpDir &&
+        file.endsWith('.md') &&
+        path.basename(file) !== 'README.md'
+      ) {
+        execFile(
+          process.execPath,
+          ['scripts/generate-help-index.ts'],
+          { cwd: import.meta.dirname },
+          (error, _stdout, stderr) => {
+            if (error) {
+              server.config.logger.error(
+                `Could not update the help index: ${stderr.trim() || error.message}`
+              );
+            }
+          }
+        );
+      }
+    });
+  },
+});
+
 export default defineConfig({
   plugins: [
     react(),
@@ -34,6 +64,7 @@ export default defineConfig({
       presets: [reactCompilerPreset({ compilationMode: 'infer' })],
     }),
     tanstackRouter(),
+    helpIndex(),
   ],
   resolve: {
     alias: {

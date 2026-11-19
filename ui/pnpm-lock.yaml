@@ -404,6 +404,9 @@ importers:
       jsdom:
         specifier: 31.0.1
         version: 31.0.1
+      mdast-util-from-markdown:
+        specifier: 2.1.0
+        version: 2.1.0
       node:
         specifier: runtime:26.13.1
         version: runtime:26.13.1

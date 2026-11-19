@@ -26,6 +26,7 @@
     "format:check": "prettier --check .",
     "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "generate:api": "rm -fr src/api && openapi-ts && prettier --write src/api --ignore-path .prettierignore",
+    "generate:help": "node scripts/generate-help-index.ts",
     "generate:routes": "tsr generate",
     "preview": "vite preview"
   },
@@ -108,6 +109,7 @@
     "eslint-plugin-react-refresh": "0.5.8",
     "globals": "17.14.0",
     "jsdom": "31.0.1",
+    "mdast-util-from-markdown": "2.1.0",
     "postcss": "8.5.33",
     "prettier": "3.10.1",
     "prettier-plugin-tailwindcss": "0.8.1",
