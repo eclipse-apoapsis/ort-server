@@ -25,6 +25,7 @@ import {
   UseFormReturn,
 } from 'react-hook-form';
 
+import { HelpButton } from '@/components/help/help-button';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -37,6 +38,7 @@ import {
 } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import type { HelpTopic } from '@/help/topics';
 import { cn } from '@/lib/utils';
 
 type MultiSelectFieldProps<
@@ -47,6 +49,8 @@ type MultiSelectFieldProps<
   name: TName;
   label?: string;
   description?: React.ReactNode;
+  // The help topic opened by a help button next to the label.
+  helpTopic?: HelpTopic;
   options: readonly { id: string; label: string; description?: string }[];
   className?: string;
 };
@@ -59,6 +63,7 @@ export const MultiSelectField = <
   name,
   label,
   description,
+  helpTopic,
   options,
   className,
 }: MultiSelectFieldProps<TFieldValues, TName>) => {
@@ -73,7 +78,10 @@ export const MultiSelectField = <
             className
           )}
         >
-          <FormLabel>{label}</FormLabel>
+          <div className='flex items-center gap-1'>
+            <FormLabel>{label}</FormLabel>
+            {helpTopic && <HelpButton topic={helpTopic} />}
+          </div>
           <FormDescription className='pb-4'>{description}</FormDescription>
           <div className='flex items-center space-x-3'>
             <Checkbox
