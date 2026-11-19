@@ -23,9 +23,13 @@ import { screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { InfrastructureService } from '@/api';
+import { HelpPanel } from '@/components/help/help-panel';
 import { Route as OrganizationRoute } from '@/routes/organizations/$orgId/infrastructure-services';
+import { Route as OrganizationCreateRoute } from '@/routes/organizations/$orgId/infrastructure-services/create';
 import { Route as ProductRoute } from '@/routes/organizations/$orgId/products/$productId/infrastructure-services';
+import { Route as ProductCreateRoute } from '@/routes/organizations/$orgId/products/$productId/infrastructure-services/create';
 import { Route as RepositoryRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/infrastructure-services';
+import { Route as RepositoryCreateRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/infrastructure-services/create';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
 import { hierarchyLevels, pageOf } from '../fixtures/table';
 
@@ -88,6 +92,15 @@ const levels = [
     remove: mocks.deleteRepositoryInfrastructureService,
   },
 ];
+
+const createRoutes = [
+  OrganizationCreateRoute,
+  ProductCreateRoute,
+  RepositoryCreateRoute,
+] as const;
+const createLevels = hierarchyLevels('infrastructure-services/create').map(
+  (level, index) => ({ ...level, route: createRoutes[index]! })
+);
 
 const services: InfrastructureService[] = [
   {
@@ -254,6 +267,36 @@ describe('infrastructure services pages', () => {
         })
       );
       await waitFor(() => expect(level.services).toHaveBeenCalledTimes(2));
+    }
+  );
+
+  it.each(createLevels)(
+    'opens the help for a field of the $level create form',
+    async (level) => {
+      const CreateComponent = level.route.options.component!;
+      const { user } = renderInteractiveWithRouter(
+        <>
+          <CreateComponent />
+          <HelpPanel />
+        </>,
+        { path: level.path, routes: level.routes, withQueryClient: true }
+      );
+
+      await user.click(
+        await screen.findByRole('button', { name: 'Help: URL Prefix' })
+      );
+
+      const panel = await screen.findByRole('dialog', {
+        name: 'Infrastructure Services',
+      });
+      await waitFor(() =>
+        expect(panel).toHaveTextContent('the service with the longest URL')
+      );
+      await waitFor(() =>
+        expect(screen.getByRole('heading', { name: 'URL Prefix' })).toHaveClass(
+          'bg-accent'
+        )
+      );
     }
   );
 });
