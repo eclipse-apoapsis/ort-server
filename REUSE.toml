@@ -196,6 +196,11 @@ SPDX-FileCopyrightText = "2024 The ORT Server Authors (See <https://github.com/e
 SPDX-License-Identifier = "Apache-2.0"
 
 [[annotations]]
+path = "ui/src/help/*.md"
+SPDX-FileCopyrightText = "2026 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
 path = "ui/src/routeTree.gen.ts"
 SPDX-FileCopyrightText = "2024 The ORT Server Authors (See <https://github.com/eclipse-apoapsis/ort-server/blob/main/NOTICE>)"
 SPDX-License-Identifier = "Apache-2.0"
