@@ -27,19 +27,25 @@ import { tanstackRouter } from '@tanstack/router-vite-plugin';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 
-// Regenerate the index of the help documents when one of them changes during development. The
-// script leaves the index alone if it is up to date.
+const helpDir = path.resolve(import.meta.dirname, 'src/help');
+
+// Vite passes some paths with forward slashes also on Windows, so resolve them to native ones.
+const isHelpDocument = (file: string) =>
+  path.resolve(path.dirname(file)) === helpDir &&
+  file.endsWith('.md') &&
+  path.basename(file) !== 'README.md';
+
+// Regenerate the index of the help documents when one of them changes during development, and tell
+// the help panel to reload the document. The script leaves the index alone if it is up to date.
 const helpIndex = (): Plugin => ({
   name: 'help-index',
+  // The help panel reloads edited documents itself, so keep Vite from reloading the whole page.
+  hotUpdate({ file }) {
+    if (isHelpDocument(file)) return [];
+  },
   configureServer(server) {
-    const helpDir = path.resolve(import.meta.dirname, 'src/help');
-
     server.watcher.on('all', (_event, file) => {
-      if (
-        path.dirname(file) === helpDir &&
-        file.endsWith('.md') &&
-        path.basename(file) !== 'README.md'
-      ) {
+      if (isHelpDocument(file)) {
         execFile(
           process.execPath,
           ['scripts/generate-help-index.ts'],
@@ -52,6 +58,7 @@ const helpIndex = (): Plugin => ({
             }
           }
         );
+        server.ws.send({ type: 'custom', event: 'help:document-changed' });
       }
     });
   },
