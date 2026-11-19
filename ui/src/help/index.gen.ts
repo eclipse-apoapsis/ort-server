@@ -29,4 +29,22 @@ export const helpIndex = {
       'credentials-types': 'Add Credentials To Files',
     },
   },
+  runs: {
+    title: 'Runs',
+    sections: {
+      'job-config-context': 'Configuration Context',
+      'environment-config-path': 'Environment Configuration Path',
+      'rule-set': 'Rule Set',
+      parameters: 'Configuration Parameters',
+      labels: 'ORT Labels',
+      'includes-excludes': 'Includes and Excludes',
+      'job-configs': 'Jobs',
+      analyzer: 'Analyzer',
+      advisor: 'Advisor',
+      scanner: 'Scanner',
+      evaluator: 'Evaluator',
+      reporter: 'Reporter',
+      notifier: 'Notifier',
+    },
+  },
 } as const;

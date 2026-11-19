@@ -20,6 +20,7 @@
 import { TrashIcon, TriangleAlert } from 'lucide-react';
 import { useFieldArray, UseFormReturn, useWatch } from 'react-hook-form';
 
+import { HelpButton } from '@/components/help/help-button';
 import { InlineCode } from '@/components/typography.tsx';
 import {
   Accordion,
@@ -80,7 +81,10 @@ export const IncludesExcludesSection = ({
   projectSuggestionsLoading,
 }: IncludesExcludesSectionProps) => (
   <>
-    <h3 className='mt-4'>{includesExcludesField.label}</h3>
+    <div className='mt-4 flex items-center gap-1'>
+      <h3>{includesExcludesField.label}</h3>
+      <HelpButton topic='runs#includes-excludes' />
+    </div>
     <div className='text-sm text-gray-500'>
       {includesExcludesField.description}
     </div>
