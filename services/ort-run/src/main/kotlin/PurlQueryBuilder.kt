@@ -29,6 +29,7 @@ import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.Res
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationProvidersTable
 import org.eclipse.apoapsis.ortserver.dao.repositories.resolvedconfiguration.ResolvedPackageCurationsTable
 
+import org.jetbrains.exposed.v1.core.Case
 import org.jetbrains.exposed.v1.core.CustomFunction
 import org.jetbrains.exposed.v1.core.ExpressionWithColumnType
 import org.jetbrains.exposed.v1.core.ExpressionWithColumnTypeAlias
@@ -40,7 +41,9 @@ import org.jetbrains.exposed.v1.core.and
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.core.isNotNull
+import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.min
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.core.plus
 import org.jetbrains.exposed.v1.core.stringLiteral
 import org.jetbrains.exposed.v1.core.times
@@ -114,6 +117,18 @@ internal fun buildPurlByRunIdentifier(
 
     return PurlResult(query, outOrtRunId, outIdentifierId, purl)
 }
+
+/**
+ * Return the given [purl], or the given [identifier] if the PURL is missing or empty. Projects have no PURL, so this
+ * gives them the identifier, which is also what the UI shows for them in place of a PURL.
+ */
+internal fun purlOrIdentifier(
+    purl: ExpressionWithColumnType<String>,
+    identifier: ExpressionWithColumnType<String>
+): ExpressionWithColumnType<String> =
+    Case()
+        .When(purl.isNull() or (purl eq ""), identifier)
+        .Else(purl)
 
 /**
  * Find the highest-priority curated PURL for each (ort_run_id, identifier_id) pair.
