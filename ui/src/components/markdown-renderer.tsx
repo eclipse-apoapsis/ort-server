@@ -17,62 +17,83 @@
  * License-Filename: LICENSE
  */
 
-import Markdown from 'react-markdown';
+import Markdown, { type Options } from 'react-markdown';
 
 import { cn } from '@/lib/utils';
 
 type MarkdownRendererProps = {
   markdown?: string;
   className?: string;
+  remarkPlugins?: Options['remarkPlugins'];
 };
 
 export const MarkdownRenderer = ({
   markdown,
   className,
+  remarkPlugins,
 }: MarkdownRendererProps) => {
   return (
     <div className={cn('prose dark:prose-invert text-sm', className)}>
       <Markdown
+        remarkPlugins={remarkPlugins}
         components={{
-          h1: ({ children }) => (
+          h1: ({ children, id }) => (
             <p
               role='heading'
               aria-level={1}
+              id={id}
               className='mt-6 mb-6 text-xl font-semibold'
             >
               {children}
             </p>
           ),
-          h2: ({ children }) => (
+          h2: ({ children, id }) => (
             <p
               role='heading'
               aria-level={2}
+              id={id}
               className='mt-4 mb-4 text-lg font-semibold'
             >
               {children}
             </p>
           ),
-          h3: ({ children }) => (
+          h3: ({ children, id }) => (
             <p
               role='heading'
               aria-level={3}
+              id={id}
               className='mt-2 mb-2 font-semibold'
             >
               {children}
             </p>
           ),
-          h4: ({ children }) => (
-            <p role='heading' aria-level={4} className='mt-2 font-semibold'>
+          h4: ({ children, id }) => (
+            <p
+              role='heading'
+              aria-level={4}
+              id={id}
+              className='mt-2 font-semibold'
+            >
               {children}
             </p>
           ),
-          h5: ({ children }) => (
-            <p role='heading' aria-level={5} className='mt-2 font-semibold'>
+          h5: ({ children, id }) => (
+            <p
+              role='heading'
+              aria-level={5}
+              id={id}
+              className='mt-2 font-semibold'
+            >
               {children}
             </p>
           ),
-          h6: ({ children }) => (
-            <p role='heading' aria-level={6} className='mt-2 font-semibold'>
+          h6: ({ children, id }) => (
+            <p
+              role='heading'
+              aria-level={6}
+              id={id}
+              className='mt-2 font-semibold'
+            >
               {children}
             </p>
           ),
