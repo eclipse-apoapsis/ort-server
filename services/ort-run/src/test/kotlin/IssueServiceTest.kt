@@ -548,6 +548,22 @@ class IssueServiceTest : WordSpec() {
                 otherRunResult.data should beEmpty()
             }
 
+            "filter project issues by identifier when filtering by PURL" {
+                val scenario = createIssuePackageScenario()
+
+                val result = service.listForOrtRunId(
+                    scenario.ortRun.id,
+                    issuesFilter = IssueFilter(
+                        purl = FilterOperatorAndValue(ComparisonOperator.ILIKE, "gradle::project")
+                    )
+                )
+
+                result.data.shouldBeSingleton {
+                    it.message shouldBe scenario.projectIssue.message
+                    it.purl should beNull()
+                }
+            }
+
             "filter by curated PURL instead of analyzer PURL" {
                 val curatedPurl = "pkg:maven/com.example/curated-alpha@2.0"
                 val scenario = createIssuePackageScenario(curatedPurl = curatedPurl)

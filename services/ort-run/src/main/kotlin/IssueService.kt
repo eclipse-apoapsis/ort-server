@@ -65,9 +65,7 @@ import org.jetbrains.exposed.v1.core.inList
 import org.jetbrains.exposed.v1.core.inSubQuery
 import org.jetbrains.exposed.v1.core.innerJoin
 import org.jetbrains.exposed.v1.core.isNotNull
-import org.jetbrains.exposed.v1.core.isNull
 import org.jetbrains.exposed.v1.core.not
-import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.core.stringLiteral
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.Query
@@ -76,8 +74,7 @@ import org.jetbrains.exposed.v1.jdbc.select
 
 private class IssueQueryContext(
     val query: Query,
-    val identifierExpression: ExpressionWithColumnType<String>,
-    val purlColumn: ExpressionWithColumnType<String>,
+    val purlOrIdentifier: ExpressionWithColumnType<String>,
     val statusExpression: ExpressionWithColumnType<String>
 )
 
@@ -163,6 +160,8 @@ class IssueService(
             IdentifiersTable.version
         )
 
+        val purlOrIdentifier = purlOrIdentifier(purlColumn, identifierExpression)
+
         val resolvedIssueIdsSubquery = ResolvedIssuesTable
             .select(ResolvedIssuesTable.ortRunIssueId)
             .where { ResolvedIssuesTable.ortRunId eq ortRunId }
@@ -199,14 +198,14 @@ class IssueService(
                 "Unsupported operator for PURL filter: ${filter.operator}"
             }
 
-            query.andWhere { purlColumn.applyILike(filter.value) }
+            query.andWhere { purlOrIdentifier.applyILike(filter.value) }
         }
 
         issuesFilter.severity?.let { filter ->
             query.andWhere { IssuesTable.severity.applyFilter(filter.operator, filter.value) }
         }
 
-        return IssueQueryContext(query, identifierExpression, purlColumn, statusExpression)
+        return IssueQueryContext(query, purlOrIdentifier, statusExpression)
     }
 
     private fun fetchPagedIssueIds(context: IssueQueryContext, parameters: ListQueryParameters): List<Long> {
@@ -235,16 +234,7 @@ class IssueService(
                     query.orderBy(IdentifiersTable.version to sortOrder)
                 }
 
-                "purl" -> {
-                    val purlWithIdentifierFallback = Case()
-                        .When(
-                            context.purlColumn.isNull() or (context.purlColumn eq ""),
-                            context.identifierExpression
-                        )
-                        .Else(context.purlColumn)
-
-                    query.orderBy(purlWithIdentifierFallback to sortOrder)
-                }
+                "purl" -> query.orderBy(context.purlOrIdentifier to sortOrder)
 
                 "status" -> query.orderBy(context.statusExpression to sortOrder)
 
