@@ -523,7 +523,8 @@ val getRunRuleViolations: RouteConfig.() -> Unit = {
 
         queryParameter<String>("purl") {
             description = "Defines a package purl to filter the results by. Uses a case-insensitive substring match " +
-                    "against the effective purl, where a curated purl takes precedence over the analyzer purl."
+                    "against the effective purl, where a curated purl takes precedence over the analyzer purl. " +
+                    "Rule violations of projects, which have no purl, are matched against their ORT identifier instead."
         }
 
         queryParameter<String>("severity") {
