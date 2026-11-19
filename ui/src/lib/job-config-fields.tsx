@@ -207,16 +207,8 @@ export const runConfigFields = {
   },
   jobConfigContext: {
     label: 'Configuration context',
-    description: (
-      <>
-        The context to pass to the configuration provider in use. The
-        configuration provider is responsible for obtaining configuration for
-        this run and uses the context in an implementation-specific way. For
-        example, if the <InlineCode>GitHubConfigFileProvider</InlineCode> is in
-        use, the context defines the Git revision of the configuration to check
-        out.
-      </>
-    ),
+    description:
+      'The version of the server configuration to use for this run. Leave it empty to use the default configuration.',
   },
   environmentConfigPath: {
     label: 'Environment configuration path',

@@ -30,6 +30,7 @@ import type {
   PreconfiguredPluginDescriptor,
   Secret,
 } from '@/api';
+import { HelpButton } from '@/components/help/help-button';
 import { PayloadView } from '@/components/payload-view';
 import { Accordion } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
@@ -398,7 +399,10 @@ export const CreateRunForm = ({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create a Run</CardTitle>
+        <div className='flex items-center gap-1'>
+          <CardTitle>Create a Run</CardTitle>
+          <HelpButton topic='runs' />
+        </div>
       </CardHeader>
       <Form {...form}>
         <form
@@ -452,9 +456,12 @@ export const CreateRunForm = ({
               name='jobConfigContext'
               render={({ field }) => (
                 <FormItem className='pt-4'>
-                  <FormLabel>
-                    {runConfigFields.jobConfigContext.label}
-                  </FormLabel>
+                  <div className='flex items-center gap-1'>
+                    <FormLabel>
+                      {runConfigFields.jobConfigContext.label}
+                    </FormLabel>
+                    <HelpButton topic='runs#job-config-context' />
+                  </div>
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
@@ -470,9 +477,12 @@ export const CreateRunForm = ({
               name='environmentConfigPath'
               render={({ field }) => (
                 <FormItem className='pt-4'>
-                  <FormLabel>
-                    {runConfigFields.environmentConfigPath.label}
-                  </FormLabel>
+                  <div className='flex items-center gap-1'>
+                    <FormLabel>
+                      {runConfigFields.environmentConfigPath.label}
+                    </FormLabel>
+                    <HelpButton topic='runs#environment-config-path' />
+                  </div>
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
@@ -488,7 +498,10 @@ export const CreateRunForm = ({
               name='jobConfigs.ruleSet'
               render={({ field }) => (
                 <FormItem className='pt-4'>
-                  <FormLabel>{jobConfigFields.ruleSet.label}</FormLabel>
+                  <div className='flex items-center gap-1'>
+                    <FormLabel>{jobConfigFields.ruleSet.label}</FormLabel>
+                    <HelpButton topic='runs#rule-set' />
+                  </div>
                   <FormControl>
                     <Input {...field} placeholder='(optional)' />
                   </FormControl>
@@ -500,7 +513,10 @@ export const CreateRunForm = ({
               )}
             />
 
-            <h3 className='mt-4'>{jobConfigFields.parameters.label}</h3>
+            <div className='mt-4 flex items-center gap-1'>
+              <h3>{jobConfigFields.parameters.label}</h3>
+              <HelpButton topic='runs#parameters' />
+            </div>
             <div className='text-sm text-gray-500'>
               {jobConfigFields.parameters.description}
             </div>
@@ -568,7 +584,10 @@ export const CreateRunForm = ({
               <PlusIcon className='ml-1 h-4 w-4' />
             </Button>
 
-            <h3 className='mt-4'>{runConfigFields.labels.label}</h3>
+            <div className='mt-4 flex items-center gap-1'>
+              <h3>{runConfigFields.labels.label}</h3>
+              <HelpButton topic='runs#labels' />
+            </div>
             <div className='text-sm text-gray-500'>
               {runConfigFields.labels.description}
             </div>
@@ -646,7 +665,10 @@ export const CreateRunForm = ({
               projectSuggestionsLoading={projectSuggestionsLoading}
             />
 
-            <h3 className='mt-4'>Enable and configure jobs</h3>
+            <div className='mt-4 flex items-center gap-1'>
+              <h3>Enable and configure jobs</h3>
+              <HelpButton topic='runs#job-configs' />
+            </div>
             <div className='text-sm text-gray-500'>
               Configure the jobs to be included in the run.
             </div>
