@@ -657,6 +657,12 @@ class RuleViolationServiceTest : WordSpec() {
                         purl = FilterOperatorAndValue(ComparisonOperator.ILIKE, pkg1.purl)
                     )
                 )
+                val projectIdentifierResult = service.listForOrtRunId(
+                    ortRun.id,
+                    ruleViolationFilter = RuleViolationFilters(
+                        purl = FilterOperatorAndValue(ComparisonOperator.ILIKE, "gradle::project")
+                    )
+                )
                 val nonPackageResult = service.listForOrtRunId(
                     ortRun.id,
                     ruleViolationFilter = RuleViolationFilters(
@@ -675,6 +681,10 @@ class RuleViolationServiceTest : WordSpec() {
                 analyzerPurlResult.data.shouldBeSingleton { it.purl shouldBe pkg2.purl }
                 curatedPurlResult.data.shouldBeSingleton { it.purl shouldBe "curated" }
                 replacedAnalyzerPurlResult.data should beEmpty()
+                projectIdentifierResult.data.shouldBeSingleton {
+                    it.rule shouldBe "Rule-4-project-id"
+                    it.purl should beNull()
+                }
                 nonPackageResult.data should beEmpty()
                 purlAscending shouldBe listOf("Rule-3-no-id", "Rule-1", "Rule-4-project-id", "Rule-2")
                 purlDescending shouldBe listOf("Rule-2", "Rule-4-project-id", "Rule-1", "Rule-3-no-id")
