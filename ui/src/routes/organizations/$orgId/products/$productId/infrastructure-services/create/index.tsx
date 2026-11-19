@@ -27,6 +27,7 @@ import { z } from 'zod';
 import { postProductInfrastructureServiceMutation } from '@/api/@tanstack/react-query.gen';
 import { withProductPermission } from '@/components/authorization';
 import { MultiSelectField } from '@/components/form/multi-select-field';
+import { HelpButton } from '@/components/help/help-button';
 import { SecretSelect } from '@/components/secret-select';
 import { Button } from '@/components/ui/button';
 import {
@@ -118,14 +119,14 @@ const CreateInfrastructureServicePage = () => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create Infrastructure Service</CardTitle>
+        <div className='flex items-center gap-1'>
+          <CardTitle>Create Infrastructure Service</CardTitle>
+          <HelpButton topic='infrastructure-services' />
+        </div>
         <CardDescription>
-          An infrastructure service refers to essential services required by a
-          repository during a run. These services can, for instance, include
-          source code or artifact repositories that help resolve dependencies
-          for the repository being analyzed. Defining these services is crucial
-          for setting up the build environment and ensuring the necessary
-          credentials are available for access.
+          An infrastructure service provides the credentials for an external
+          service, such as a source code or artifact repository, that a run
+          needs to access.
         </CardDescription>
       </CardHeader>
       <Form {...form}>
@@ -152,7 +153,10 @@ const CreateInfrastructureServicePage = () => {
               name='url'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>URL Prefix</FormLabel>
+                  <div className='flex items-center gap-1'>
+                    <FormLabel>URL Prefix</FormLabel>
+                    <HelpButton topic='infrastructure-services#url' />
+                  </div>
                   <FormControl>
                     <Input {...field} type='url' />
                   </FormControl>
@@ -184,7 +188,10 @@ const CreateInfrastructureServicePage = () => {
               name='usernameSecretRef'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Username Secret</FormLabel>
+                  <div className='flex items-center gap-1'>
+                    <FormLabel>Username Secret</FormLabel>
+                    <HelpButton topic='infrastructure-services#username-secret-ref' />
+                  </div>
                   <SecretSelect
                     value={field.value}
                     onChange={field.onChange}
@@ -208,7 +215,10 @@ const CreateInfrastructureServicePage = () => {
               name='passwordSecretRef'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Password Secret</FormLabel>
+                  <div className='flex items-center gap-1'>
+                    <FormLabel>Password Secret</FormLabel>
+                    <HelpButton topic='infrastructure-services#password-secret-ref' />
+                  </div>
                   <SecretSelect
                     value={field.value}
                     onChange={field.onChange}
@@ -231,24 +241,8 @@ const CreateInfrastructureServicePage = () => {
               form={form}
               name='credentialsTypes'
               label='Add Credentials To Files'
-              description={
-                <div className='space-y-2'>
-                  <p>
-                    Choose which files the credentials of the service should be
-                    added to. Note that you can choose multiple files, or none
-                    at all, in which case the credentials for this service will
-                    be ignored when generating configuration files for
-                    credentials.
-                  </p>
-                  <p>
-                    In some cases, there could be conflicting services; for
-                    instance, if multiple repositories with different
-                    credentials are defined on the same repository server.
-                    Therefore it is also possible to choose not to include the
-                    credentials in any files.
-                  </p>
-                </div>
-              }
+              description='Choose the configuration files that external tools read the credentials of the service from.'
+              helpTopic='infrastructure-services#credentials-types'
               options={[
                 {
                   id: 'NETRC_FILE',
