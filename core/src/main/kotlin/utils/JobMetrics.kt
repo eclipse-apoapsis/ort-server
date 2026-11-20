@@ -135,7 +135,7 @@ class JobMetrics(private val application: Application, private val db: Database)
             OrtRunStatus.entries.forEach { status ->
                 Gauge.builder(
                     "runs.status.${status.name.lowercase()}",
-                    runStatusCounts[status]
+                    runStatusCounts.getValue(status)
                 ) { it.toDouble() }
                     .description("The number of ORT runs with status '${status.name}'.")
                     .register(registry)
@@ -144,42 +144,42 @@ class JobMetrics(private val application: Application, private val db: Database)
             JobStatus.entries.forEach { status ->
                 Gauge.builder(
                     "jobs.advisor.status.${status.name.lowercase()}",
-                    advisorStatusCounts[status]
+                    advisorStatusCounts.getValue(status)
                 ) { it.toDouble() }
                     .description("The number of advisor jobs with status '${status.name}'.")
                     .register(registry)
 
                 Gauge.builder(
                     "jobs.analyzer.status.${status.name.lowercase()}",
-                    analyzerStatusCounts[status]
+                    analyzerStatusCounts.getValue(status)
                 ) { it.toDouble() }
                     .description("The number of analyzer jobs with status '${status.name}'.")
                     .register(registry)
 
                 Gauge.builder(
                     "jobs.evaluator.status.${status.name.lowercase()}",
-                    evaluatorStatusCounts[status]
+                    evaluatorStatusCounts.getValue(status)
                 ) { it.toDouble() }
                     .description("The number of evaluator jobs with status '${status.name}'.")
                     .register(registry)
 
                 Gauge.builder(
                     "jobs.notifier.status.${status.name.lowercase()}",
-                    notifierStatusCounts[status]
+                    notifierStatusCounts.getValue(status)
                 ) { it.toDouble() }
                     .description("The number of notifier jobs with status '${status.name}'.")
                     .register(registry)
 
                 Gauge.builder(
                     "jobs.reporter.status.${status.name.lowercase()}",
-                    reporterStatusCounts[status]
+                    reporterStatusCounts.getValue(status)
                 ) { it.toDouble() }
                     .description("The number of reporter jobs with status '${status.name}'.")
                     .register(registry)
 
                 Gauge.builder(
                     "jobs.scanner.status.${status.name.lowercase()}",
-                    scannerStatusCounts[status]
+                    scannerStatusCounts.getValue(status)
                 ) { it.toDouble() }
                     .description("The number of scanner jobs with status '${status.name}'.")
                     .register(registry)
@@ -191,16 +191,16 @@ class JobMetrics(private val application: Application, private val db: Database)
 
                     try {
                         OrtRunStatus.entries.forEach { status ->
-                            runStatusCounts[status]?.set(countOrtRunStatus(status))
+                            runStatusCounts.getValue(status).set(countOrtRunStatus(status))
                         }
 
                         JobStatus.entries.forEach { status ->
-                            advisorStatusCounts[status]?.set(countAdvisorJobs(status))
-                            analyzerStatusCounts[status]?.set(countAnalyzerJobs(status))
-                            evaluatorStatusCounts[status]?.set(countEvaluatorJobs(status))
-                            notifierStatusCounts[status]?.set(countNotifierJobs(status))
-                            reporterStatusCounts[status]?.set(countReporterJobs(status))
-                            scannerStatusCounts[status]?.set(countScannerJobs(status))
+                            advisorStatusCounts.getValue(status).set(countAdvisorJobs(status))
+                            analyzerStatusCounts.getValue(status).set(countAnalyzerJobs(status))
+                            evaluatorStatusCounts.getValue(status).set(countEvaluatorJobs(status))
+                            notifierStatusCounts.getValue(status).set(countNotifierJobs(status))
+                            reporterStatusCounts.getValue(status).set(countReporterJobs(status))
+                            scannerStatusCounts.getValue(status).set(countScannerJobs(status))
                         }
 
                         getOrtRunDurations(now - TIMER_STEP).forEach {
