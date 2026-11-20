@@ -17,7 +17,7 @@
 
 services:
   postgres:
-    image: postgres:18
+    image: postgres:19
     restart: unless-stopped
     healthcheck:
       test: ['CMD-SHELL', 'pg_isready -U postgres']
