@@ -190,9 +190,7 @@ class JobMetrics(private val application: Application, private val db: Database)
                     val now = Clock.System.now()
 
                     try {
-                        OrtRunStatus.entries.forEach { status ->
-                            runStatusCounts.getValue(status).set(countOrtRunStatus(status))
-                        }
+                        runStatusCounts.forEach { (status, count) -> count.set(countOrtRunStatus(status)) }
 
                         JobStatus.entries.forEach { status ->
                             advisorStatusCounts.getValue(status).set(countAdvisorJobs(status))
