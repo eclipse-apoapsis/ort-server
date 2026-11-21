@@ -25,6 +25,7 @@ import { getServerSettingByKeyOptions } from '@/api/@tanstack/react-query.gen';
 import { RouterContext } from '@/app';
 import { Footer } from '@/components/footer';
 import { Header } from '@/components/header';
+import { HelpPanel } from '@/components/help/help-panel';
 import { setCustomFavicon } from '@/helpers/set-custom-favicon';
 
 // Don't use Router devtools in production.
@@ -47,6 +48,7 @@ const RootComponent = () => {
         </main>
         <Footer />
       </div>
+      <HelpPanel />
       <Suspense>
         <TanStackRouterDevtools />
       </Suspense>

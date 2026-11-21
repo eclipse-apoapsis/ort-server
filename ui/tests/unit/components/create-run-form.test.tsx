@@ -24,6 +24,7 @@ import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 
 import type { OrtRun, PreconfiguredPluginDescriptor } from '@/api';
+import { HelpPanel } from '@/components/help/help-panel';
 import {
   CreateRunForm,
   type CreateRunFormProps,
@@ -194,6 +195,61 @@ describe('CreateRunForm', () => {
   // The form takes the plugin defaults as `values` and keeps dirty values when
   // they change, which React Hook Form reports as fragile under React Compiler.
   // The tests below run on the compiled form.
+
+  it('opens the help about runs from the form without submitting it', async () => {
+    const onSubmit = vi.fn();
+    const { user } = renderInteractiveWithRouter(
+      <>
+        <CreateRunForm
+          defaultPlugins={defaultPlugins}
+          isSubmitting={false}
+          isSuperuser={false}
+          onSubmit={onSubmit}
+          permissions={permissions}
+          plugins={[advisorPlugin, scannerPlugin, ...packageManagerPlugins]}
+          rerun={rerun}
+          secrets={secrets}
+        />
+        <HelpPanel />
+      </>,
+      {
+        path: createRunPath,
+        routes: [
+          {
+            path: '/organizations/$orgId/products/$productId/repositories/$repoId/create-run',
+          },
+        ],
+        withQueryClient: true,
+      }
+    );
+
+    for (const title of [
+      'Runs',
+      'Configuration Context',
+      'Environment Configuration Path',
+      'Rule Set',
+      'Configuration Parameters',
+      'ORT Labels',
+      'Includes and Excludes',
+      'Jobs',
+    ]) {
+      expect(
+        await screen.findByRole('button', { name: `Help: ${title}` })
+      ).toBeInTheDocument();
+    }
+
+    await user.click(screen.getByRole('button', { name: 'Help: Rule Set' }));
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Runs' })
+    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByRole('heading', { name: 'Rule Set' })).toHaveClass(
+        'bg-accent'
+      )
+    );
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
 
   it('previews the complete defaults for new runs and reruns', async () => {
     const { user: newRunUser } = renderSwappableForm(

@@ -19,14 +19,51 @@
 
 /// <reference types="vitest/config" />
 
+import { execFile } from 'child_process';
 import path from 'path';
 
 import babel from '@rolldown/plugin-babel';
 import { tanstackRouter } from '@tanstack/router-vite-plugin';
 import react, { reactCompilerPreset } from '@vitejs/plugin-react';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 
-// https://vitejs.dev/config/
+const helpDir = path.resolve(import.meta.dirname, 'src/help');
+
+// Vite passes some paths with forward slashes also on Windows, so resolve them to native ones.
+const isHelpDocument = (file: string) =>
+  path.resolve(path.dirname(file)) === helpDir &&
+  file.endsWith('.md') &&
+  path.basename(file) !== 'README.md';
+
+// Regenerate the index of the help documents when one of them changes during development, and tell
+// the help panel to reload the document. The script leaves the index alone if it is up to date.
+const helpIndex = (): Plugin => ({
+  name: 'help-index',
+  // The help panel reloads edited documents itself, so keep Vite from reloading the whole page.
+  hotUpdate({ file }) {
+    if (isHelpDocument(file)) return [];
+  },
+  configureServer(server) {
+    server.watcher.on('all', (_event, file) => {
+      if (isHelpDocument(file)) {
+        execFile(
+          process.execPath,
+          ['scripts/generate-help-index.ts'],
+          { cwd: import.meta.dirname },
+          (error, _stdout, stderr) => {
+            if (error) {
+              server.config.logger.error(
+                `Could not update the help index: ${stderr.trim() || error.message}`
+              );
+            }
+          }
+        );
+        server.ws.send({ type: 'custom', event: 'help:document-changed' });
+      }
+    });
+  },
+});
+
 export default defineConfig({
   plugins: [
     react(),
@@ -34,6 +71,7 @@ export default defineConfig({
       presets: [reactCompilerPreset({ compilationMode: 'infer' })],
     }),
     tanstackRouter(),
+    helpIndex(),
   ],
   resolve: {
     alias: {
