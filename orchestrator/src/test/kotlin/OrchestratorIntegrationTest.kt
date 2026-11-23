@@ -22,11 +22,13 @@ package org.eclipse.apoapsis.ortserver.orchestrator
 import com.typesafe.config.ConfigFactory
 
 import io.kotest.core.spec.style.WordSpec
-import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.collections.beEmpty
+import io.kotest.matchers.collections.containExactlyInAnyOrder
+import io.kotest.matchers.collections.containOnly
 import io.kotest.matchers.collections.shouldBeSingleton
-import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
-import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import kotlin.time.Clock
@@ -107,7 +109,7 @@ class OrchestratorIntegrationTest : WordSpec({
             orchestrator.handle(run, CreateOrtRun(run))
 
             fixtures.runStatus(run) shouldBe OrtRunStatus.ACTIVE
-            sentPayloads().shouldContainExactlyInAnyOrder(ConfigRequest(run.id))
+            sentPayloads() should containExactlyInAnyOrder(ConfigRequest(run.id))
         }
 
         "be ignored if the repository does not exist" {
@@ -116,7 +118,7 @@ class OrchestratorIntegrationTest : WordSpec({
             orchestrator.handle(run, CreateOrtRun(run.copy(repositoryId = run.repositoryId + 1)))
 
             fixtures.runStatus(run) shouldBe OrtRunStatus.CREATED
-            sentPayloads().shouldBeEmpty()
+            sentPayloads() should beEmpty()
         }
     }
 
@@ -129,7 +131,7 @@ class OrchestratorIntegrationTest : WordSpec({
             val analyzerJob = fixtures.analyzerJobRepository.getForOrtRun(run.id).shouldNotBeNull()
             analyzerJob.status shouldBe JobStatus.SCHEDULED
             analyzerJob.configuration shouldBe fixtures.jobConfigurations.analyzer
-            sentPayloads().shouldContainExactlyInAnyOrder(AnalyzerRequest(analyzerJob.id))
+            sentPayloads() should containExactlyInAnyOrder(AnalyzerRequest(analyzerJob.id))
         }
 
         "be ignored if the run does not exist" {
@@ -137,8 +139,8 @@ class OrchestratorIntegrationTest : WordSpec({
 
             orchestrator.handle(run, ConfigWorkerResult(run.id + 1))
 
-            fixtures.analyzerJobRepository.getForOrtRun(run.id).shouldBeNull()
-            sentPayloads().shouldBeEmpty()
+            fixtures.analyzerJobRepository.getForOrtRun(run.id) should beNull()
+            sentPayloads() should beEmpty()
         }
     }
 
@@ -155,7 +157,7 @@ class OrchestratorIntegrationTest : WordSpec({
                 issue.message shouldBe "Config error"
                 issue.severity shouldBe Severity.ERROR
             }
-            sentPayloads().shouldBeEmpty()
+            sentPayloads() should beEmpty()
         }
     }
 
@@ -191,7 +193,7 @@ class OrchestratorIntegrationTest : WordSpec({
             fixtures.jobStatus(run, AnalyzerEndpoint) shouldBe JobStatus.FINISHED
             fixtures.jobStatus(run, AdvisorEndpoint) shouldBe JobStatus.SCHEDULED
             fixtures.jobStatus(run, ScannerEndpoint) shouldBe JobStatus.SCHEDULED
-            sentPayloads().shouldContainExactlyInAnyOrder(
+            sentPayloads() should containExactlyInAnyOrder(
                 AdvisorRequest(fixtures.jobId(run, AdvisorEndpoint)),
                 ScannerRequest(fixtures.jobId(run, ScannerEndpoint))
             )
@@ -206,9 +208,9 @@ class OrchestratorIntegrationTest : WordSpec({
             orchestrator.handle(run, ScannerWorkerResult(scannerJob.id))
 
             fixtures.jobStatus(run, ScannerEndpoint) shouldBe JobStatus.FINISHED
-            fixtures.jobStatus(run, EvaluatorEndpoint).shouldBeNull()
+            fixtures.jobStatus(run, EvaluatorEndpoint) should beNull()
             fixtures.runStatus(run) shouldBe OrtRunStatus.CREATED
-            sentPayloads().shouldBeEmpty()
+            sentPayloads() should beEmpty()
         }
 
         "schedule the evaluator after the scanner if no advisor is configured" {
@@ -218,7 +220,7 @@ class OrchestratorIntegrationTest : WordSpec({
 
             orchestrator.handle(run, ScannerWorkerResult(scannerJob.id))
 
-            sentPayloads().shouldContainExactlyInAnyOrder(EvaluatorRequest(fixtures.jobId(run, EvaluatorEndpoint)))
+            sentPayloads() should containExactlyInAnyOrder(EvaluatorRequest(fixtures.jobId(run, EvaluatorEndpoint)))
         }
 
         "schedule the reporter after the analyzer if only these workers are configured" {
@@ -232,7 +234,7 @@ class OrchestratorIntegrationTest : WordSpec({
 
             orchestrator.handle(run, AnalyzerWorkerResult(analyzerJob.id))
 
-            sentPayloads().shouldContainExactlyInAnyOrder(ReporterRequest(fixtures.jobId(run, ReporterEndpoint)))
+            sentPayloads() should containExactlyInAnyOrder(ReporterRequest(fixtures.jobId(run, ReporterEndpoint)))
         }
 
         "schedule the notifier after the reporter" {
@@ -241,7 +243,7 @@ class OrchestratorIntegrationTest : WordSpec({
 
             orchestrator.handle(run, ReporterWorkerResult(reporterJob.id))
 
-            sentPayloads().shouldContainExactlyInAnyOrder(NotifierRequest(fixtures.jobId(run, NotifierEndpoint)))
+            sentPayloads() should containExactlyInAnyOrder(NotifierRequest(fixtures.jobId(run, NotifierEndpoint)))
         }
 
         "finish the run and delete the mail recipients after the last job" {
@@ -253,9 +255,9 @@ class OrchestratorIntegrationTest : WordSpec({
             fixtures.runStatus(run) shouldBe OrtRunStatus.FINISHED
             fixtures.notifierJobRepository.get(notifierJob.id).shouldNotBeNull {
                 status shouldBe JobStatus.FINISHED
-                configuration.recipientAddresses.shouldBeEmpty()
+                configuration.recipientAddresses should beEmpty()
             }
-            sentPayloads().shouldBeEmpty()
+            sentPayloads() should beEmpty()
         }
 
         "finish the run with issues if a job finished with issues" {
@@ -303,7 +305,7 @@ class OrchestratorIntegrationTest : WordSpec({
                 issue.message shouldBe "Evaluator error"
             }
             fixtures.runStatus(run) shouldBe OrtRunStatus.CREATED
-            sentPayloads().shouldContainExactlyInAnyOrder(ReporterRequest(fixtures.jobId(run, ReporterEndpoint)))
+            sentPayloads() should containExactlyInAnyOrder(ReporterRequest(fixtures.jobId(run, ReporterEndpoint)))
         }
 
         "not schedule the reporter before the scanner finished if the advisor failed" {
@@ -315,7 +317,7 @@ class OrchestratorIntegrationTest : WordSpec({
             orchestrator.handle(run, AdvisorWorkerError(advisorJob.id))
 
             fixtures.jobStatus(run, AdvisorEndpoint) shouldBe JobStatus.FAILED
-            sentPayloads().shouldBeEmpty()
+            sentPayloads() should beEmpty()
         }
 
         "schedule the notifier even if the reporter failed" {
@@ -324,7 +326,7 @@ class OrchestratorIntegrationTest : WordSpec({
 
             orchestrator.handle(run, ReporterWorkerError(reporterJob.id))
 
-            sentPayloads().shouldContainExactlyInAnyOrder(NotifierRequest(fixtures.jobId(run, NotifierEndpoint)))
+            sentPayloads() should containExactlyInAnyOrder(NotifierRequest(fixtures.jobId(run, NotifierEndpoint)))
         }
 
         "fail the run and delete the mail recipients after the last job" {
@@ -335,7 +337,7 @@ class OrchestratorIntegrationTest : WordSpec({
 
             fixtures.runStatus(run) shouldBe OrtRunStatus.FAILED
             fixtures.notifierJobRepository.get(notifierJob.id).shouldNotBeNull()
-                .configuration.recipientAddresses.shouldBeEmpty()
+                .configuration.recipientAddresses should beEmpty()
         }
     }
 
@@ -358,7 +360,7 @@ class OrchestratorIntegrationTest : WordSpec({
             orchestrator.handle(run, WorkerError(AnalyzerEndpoint.configPrefix))
 
             fixtures.jobStatus(run, AnalyzerEndpoint) shouldBe JobStatus.FAILED
-            sentPayloads().shouldContainExactlyInAnyOrder(ReporterRequest(fixtures.jobId(run, ReporterEndpoint)))
+            sentPayloads() should containExactlyInAnyOrder(ReporterRequest(fixtures.jobId(run, ReporterEndpoint)))
         }
 
         "not change a completed job while other jobs are still running" {
@@ -371,9 +373,9 @@ class OrchestratorIntegrationTest : WordSpec({
             fixtures.jobStatus(run, NotifierEndpoint) shouldBe JobStatus.RUNNING
             fixtures.ortRunRepository.get(run.id).shouldNotBeNull {
                 status shouldBe OrtRunStatus.CREATED
-                issues.shouldBeEmpty()
+                issues should beEmpty()
             }
-            sentPayloads().shouldBeEmpty()
+            sentPayloads() should beEmpty()
         }
 
         "not change a completed job and the finished run if no other jobs are running" {
@@ -385,7 +387,7 @@ class OrchestratorIntegrationTest : WordSpec({
 
             fixtures.jobStatus(run, ReporterEndpoint) shouldBe JobStatus.FINISHED
             fixtures.runStatus(run) shouldBe OrtRunStatus.FINISHED
-            sentPayloads().shouldBeEmpty()
+            sentPayloads() should beEmpty()
         }
 
         "fail the run if the Config worker failed" {
@@ -394,7 +396,7 @@ class OrchestratorIntegrationTest : WordSpec({
             orchestrator.handle(run, WorkerError(ConfigEndpoint.configPrefix))
 
             fixtures.runStatus(run) shouldBe OrtRunStatus.FAILED
-            sentPayloads().shouldBeEmpty()
+            sentPayloads() should beEmpty()
         }
     }
 
@@ -404,7 +406,7 @@ class OrchestratorIntegrationTest : WordSpec({
 
             orchestrator.handle(run, LostSchedule(run.id))
 
-            sentPayloads().shouldContainExactlyInAnyOrder(ConfigRequest(run.id))
+            sentPayloads() should containExactlyInAnyOrder(ConfigRequest(run.id))
             fixtures.runStatus(run) shouldBe OrtRunStatus.CREATED
         }
 
@@ -414,7 +416,7 @@ class OrchestratorIntegrationTest : WordSpec({
 
             orchestrator.handle(run, LostSchedule(run.id))
 
-            sentPayloads().shouldContainExactlyInAnyOrder(
+            sentPayloads() should containExactlyInAnyOrder(
                 AdvisorRequest(fixtures.jobId(run, AdvisorEndpoint)),
                 ScannerRequest(fixtures.jobId(run, ScannerEndpoint))
             )
@@ -427,7 +429,7 @@ class OrchestratorIntegrationTest : WordSpec({
             orchestrator.handle(run, LostSchedule(run.id))
 
             fixtures.runStatus(run) shouldBe OrtRunStatus.FINISHED
-            sentPayloads().shouldBeEmpty()
+            sentPayloads() should beEmpty()
         }
     }
 
@@ -476,8 +478,7 @@ class OrchestratorIntegrationTest : WordSpec({
                 ortRunId = run.id,
                 transportProperties = mapOf("kubernetes.kubeprop" to "kubeval")
             )
-            MessageSenderFactoryForTesting.takeAllMessages().map { it.header }.toSet()
-                .shouldContainExactlyInAnyOrder(expectedHeader)
+            MessageSenderFactoryForTesting.takeAllMessages().map { it.header } should containOnly(expectedHeader)
         }
 
         "use the trace ID of the run for the Config worker if the received message has none" {
