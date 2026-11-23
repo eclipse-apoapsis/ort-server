@@ -235,18 +235,29 @@ When upgrading the PostgreSQL version in the Docker Compose setup, the database 
    docker compose up -d postgres
    ```
 
+   The backups must be made with the old PostgreSQL version.
+   If `docker-compose.yml` already refers to the new version, for example after pulling the latest changes, the PostgreSQL service fails to start.
+   In that case, change the version in `docker-compose.yml` back to the old one and run the command again.
+   Before the next step, check with `docker compose ps postgres` that the service is healthy.
+
 3. Make backups of the ORT Server and Keycloak databases:
 
    ```shell
-   docker compose exec postgres pg_dump -Fc -U postgres -d ort_server -n public > keycloak.dump
-   docker compose exec postgres pg_dump -Fc -U postgres -d ort_server -n ort_server > ort-server.dump
+   docker compose exec -T postgres pg_dump -Fc -U postgres -d ort_server -n public > keycloak.dump
+   docker compose exec -T postgres pg_dump -Fc -U postgres -d ort_server -n ort_server > ort-server.dump
    ```
 
-4. Stop Docker Compose and delete the volumes:
+   The `-T` option is required, because a terminal attached to the command can corrupt the binary backup files.
+
+4. Stop Docker Compose and delete the database volume:
 
    ```shell
-   docker compose down -v
+   docker compose down
+   docker volume rm ort-server_db
    ```
+
+   The name of the volume starts with the name of the Compose project, which is the name of the directory containing `docker-compose.yml` by default.
+   Use `docker volume ls` to find it if it differs.
 
 5. Update the PostgreSQL version in `docker-compose.yml`.
 
@@ -256,14 +267,21 @@ When upgrading the PostgreSQL version in the Docker Compose setup, the database 
    docker compose up -d postgres
    ```
 
-7. Import the database backups:
+7. Create the `ort_server` schema and the `pgcrypto` extension that the ORT Server database uses.
+   The backups do not contain them, because they are limited to single schemas.
+
+   ```shell
+   docker compose exec -T postgres psql -U postgres -d ort_server -c "CREATE SCHEMA ort_server" -c "CREATE EXTENSION pgcrypto SCHEMA ort_server"
+   ```
+
+8. Import the database backups:
 
    ```shell
    cat keycloak.dump | docker compose exec -T postgres pg_restore -U postgres -d ort_server -n public
    cat ort-server.dump | docker compose exec -T postgres pg_restore -U postgres -d ort_server -n ort_server
    ```
 
-8. Start all services:
+9. Start all services:
 
    ```shell
    docker compose up -d
