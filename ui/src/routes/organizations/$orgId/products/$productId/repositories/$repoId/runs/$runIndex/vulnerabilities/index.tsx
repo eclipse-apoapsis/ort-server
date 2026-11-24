@@ -69,6 +69,11 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   getResolvedBackgroundColor,
   getVulnerabilityRatingBackgroundColor,
 } from '@/helpers/get-status-class';
@@ -85,6 +90,8 @@ import {
 } from '@/helpers/resolutions';
 import { getVersionsRelativeToReference } from '@/helpers/versions';
 import {
+  findHighestEpssScore,
+  formatEpssValue,
   formatReferenceScore,
   formatReferenceVector,
 } from '@/helpers/vulnerability-statistics';
@@ -156,6 +163,7 @@ const supportedSortColumns = new Set([
   'purl',
   'externalId',
   'rating',
+  'epssScore',
 ]);
 
 const columnHelper = createAppColumnHelper<VulnerabilityWithDetails>();
@@ -168,6 +176,7 @@ const VulnerabilityCard = ({
 }) => {
   const params = Route.useParams();
   const packageIdType = useUserSettingsStore((state) => state.packageIdType);
+  const epssScore = findHighestEpssScore(vulnerability.vulnerability)?.score;
   return (
     <div className='flex flex-col gap-1'>
       <div className='flex items-center justify-between'>
@@ -212,6 +221,22 @@ const VulnerabilityCard = ({
           >
             {vulnerability.rating}
           </Badge>
+          {epssScore !== undefined && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Badge
+                  className='bg-secondary text-secondary-foreground'
+                  variant='small'
+                >
+                  EPSS {formatEpssValue(epssScore)}
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                Probability of observing exploitation activity in the wild in
+                the next 30 days.
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
         {(vulnerability.firstFixedVersions?.length ?? 0) > 0 && (
           <Badge className='bg-green-300 whitespace-nowrap text-black'>
@@ -373,6 +398,13 @@ const VulnerabilitiesComponent = () => {
         },
       },
     }),
+    columnHelper.accessor(
+      (vuln) => findHighestEpssScore(vuln.vulnerability)?.score,
+      {
+        id: 'epssScore',
+        header: 'EPSS score',
+      }
+    ),
     columnHelper.accessor(
       (vuln) => [
         getResolvedStatus(vuln),
@@ -625,6 +657,7 @@ const VulnerabilitiesComponent = () => {
         columnVisibility: {
           [columnId]: false,
           rating: false,
+          epssScore: false,
           itemStatus: false,
           externalId: false,
           advisorName: false,

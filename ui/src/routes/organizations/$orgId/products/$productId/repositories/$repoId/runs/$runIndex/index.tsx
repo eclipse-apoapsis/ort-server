@@ -175,7 +175,10 @@ const RunComponent = () => {
                 runIndex: params.runIndex,
               }}
               search={{
-                sortBy: [{ id: 'rating', desc: true }],
+                sortBy: [
+                  { id: 'rating', desc: true },
+                  { id: 'epssScore', desc: true },
+                ],
                 itemResolved: ['Unresolved'],
               }}
             >
