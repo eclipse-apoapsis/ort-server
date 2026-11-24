@@ -116,6 +116,71 @@ describe('DataTableCardsHeader', () => {
   });
 });
 
+type SortOrderRow = {
+  first: string;
+  second: string;
+  third: string;
+};
+
+const SortMenuOrderHarness = ({ sorting }: { sorting: SortingState }) => {
+  const table = useAppTable(
+    {
+      data: [{ first: 'a', second: 'b', third: 'c' }] as SortOrderRow[],
+      columns: [
+        { accessorKey: 'first', header: 'First' },
+        { accessorKey: 'second', header: 'Second' },
+        { accessorKey: 'third', header: 'Third' },
+      ],
+      state: {
+        columnVisibility: { first: false, second: false, third: false },
+        sorting,
+      },
+    },
+    selectNoTableState
+  );
+
+  return (
+    <DataTableCardsSort table={table} setSortingOptions={setSortingOptions} />
+  );
+};
+
+const openSortMenu = async (sorting: SortingState) => {
+  const { user } = renderInteractiveWithRouter(
+    <SortMenuOrderHarness sorting={sorting} />,
+    { path: '/sort', routes: [{ path: '/sort' }] }
+  );
+  await user.click(await screen.findByRole('button', { name: 'Sort' }));
+
+  return screen.findAllByRole('menuitem');
+};
+
+describe('DataTableCardsSort column order', () => {
+  it('lists the sorted columns first, in sort order, with their positions', async () => {
+    const items = await openSortMenu([
+      { id: 'third', desc: true },
+      { id: 'first', desc: false },
+    ]);
+
+    expect(items.map((item) => item.textContent)).toEqual([
+      'Third1',
+      'First2',
+      'Second',
+      'Clear Sorting',
+    ]);
+  });
+
+  it('shows no position when only one column is sorted', async () => {
+    const items = await openSortMenu([{ id: 'second', desc: false }]);
+
+    expect(items.map((item) => item.textContent)).toEqual([
+      'Second',
+      'First',
+      'Third',
+      'Clear Sorting',
+    ]);
+  });
+});
+
 // Dropdown content stays closed during static rendering, so its real Link
 // descendants are not mounted and do not require a router or a Link mock.
 describe('DataTableCardsSort', () => {
