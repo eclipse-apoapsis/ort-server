@@ -49,9 +49,9 @@ class RunVulnerabilitiesProjectionBuilderTest : WordSpec({
 
     /**
      * Create an ORT run with an advisor result for a single package that has vulnerabilities with the given external
-     * IDs and severities. A severity of `null` creates a vulnerability without references.
+     * IDs and references.
      */
-    suspend fun createRunWithVulnerabilities(vararg vulnerabilities: Pair<String, String?>): Long {
+    suspend fun createRunWithReferences(vararg vulnerabilities: Pair<String, List<VulnerabilityReference>>): Long {
         val fixtures = dbExtension.fixtures
         val ortRun = fixtures.createOrtRun()
         val advisorJob = fixtures.createAdvisorJob(ortRun.id, AdvisorJobConfiguration())
@@ -65,16 +65,12 @@ class RunVulnerabilitiesProjectionBuilderTest : WordSpec({
                         startTime = Clock.System.now(),
                         endTime = Clock.System.now(),
                         issues = emptyList(),
-                        vulnerabilities = vulnerabilities.map { (externalId, severity) ->
+                        vulnerabilities = vulnerabilities.map { (externalId, references) ->
                             Vulnerability(
                                 externalId = externalId,
                                 summary = null,
                                 description = null,
-                                references = listOfNotNull(
-                                    severity?.let {
-                                        VulnerabilityReference("https://example.com", null, it, null, null)
-                                    }
-                                )
+                                references = references
                             )
                         }
                     )
@@ -84,6 +80,19 @@ class RunVulnerabilitiesProjectionBuilderTest : WordSpec({
 
         return ortRun.id
     }
+
+    /**
+     * Create an ORT run with an advisor result for a single package that has vulnerabilities with the given external
+     * IDs and severities. A severity of `null` creates a vulnerability without references.
+     */
+    suspend fun createRunWithVulnerabilities(vararg vulnerabilities: Pair<String, String?>): Long =
+        createRunWithReferences(
+            *vulnerabilities.map { (externalId, severity) ->
+                externalId to listOfNotNull(
+                    severity?.let { VulnerabilityReference("https://example.com", null, it, null, null) }
+                )
+            }.toTypedArray()
+        )
 
     /**
      * Create an ORT run with an advisor result for each of the given packages, each of which has a single vulnerability
@@ -118,6 +127,17 @@ class RunVulnerabilitiesProjectionBuilderTest : WordSpec({
 
         return ortRun.id
     }
+
+    /** Return the external IDs and EPSS scores of the projected vulnerabilities of the run with [ortRunId]. */
+    suspend fun projectedEpssScores(ortRunId: Long): List<Pair<String, Float?>> =
+        dbExtension.db.transaction {
+            ProjectedRunVulnerabilitiesTable.selectAll()
+                .where { ProjectedRunVulnerabilitiesTable.ortRunId eq ortRunId }
+                .orderBy(ProjectedRunVulnerabilitiesTable.externalId)
+                .map {
+                    it[ProjectedRunVulnerabilitiesTable.externalId] to it[ProjectedRunVulnerabilitiesTable.epssScore]
+                }
+        }
 
     suspend fun buildProjection(
         ortRunId: Long,
@@ -167,6 +187,23 @@ class RunVulnerabilitiesProjectionBuilderTest : WordSpec({
             buildProjection(ortRunId)
 
             projectedRows(ortRunId) should containExactly("CVE-2021-1111" to VulnerabilityRating.NONE.ordinal)
+        }
+
+        "store the highest score of the EPSS references" {
+            val ortRunId = createRunWithReferences(
+                "CVE-2021-1111" to listOf(
+                    VulnerabilityReference("https://example.com", "EPSS", null, 0.2f, "0.8"),
+                    VulnerabilityReference("https://example.com", "epss", null, 0.4f, "0.9"),
+                    VulnerabilityReference("https://example.com", "CVSS:3.1", "HIGH", 7.5f, null)
+                ),
+                "CVE-2021-2222" to listOf(
+                    VulnerabilityReference("https://example.com", "CVSS:3.1", "CRITICAL", 9.8f, null)
+                )
+            )
+
+            buildProjection(ortRunId)
+
+            projectedEpssScores(ortRunId) should containExactly("CVE-2021-1111" to 0.4f, "CVE-2021-2222" to null)
         }
 
         "build the projection in chunks of packages" {
