@@ -20,7 +20,10 @@
 import { LinkOptions } from '@tanstack/react-router';
 import type { RowData } from '@tanstack/react-table';
 
-import { DataTableCardsSort } from '@/components/data-table-cards/data-table-cards-sort';
+import {
+  DataTableCardsSort,
+  SortPresetOptions,
+} from '@/components/data-table-cards/data-table-cards-sort';
 import { DataTableFilter } from '@/components/data-table/data-table-filter';
 import type { AppReactTable, AppTableState } from '@/hooks/use-app-table';
 
@@ -35,11 +38,13 @@ interface DataTableCardsHeaderProps<TData extends RowData> {
     id: string;
     desc: boolean | undefined;
   }) => LinkOptions;
+  sortPresets?: SortPresetOptions;
 }
 
 export function DataTableCardsHeader<TData extends RowData>({
   table,
   setSortingOptions,
+  sortPresets,
 }: DataTableCardsHeaderProps<TData>) {
   return (
     <div className='mb-0 flex items-center justify-end gap-6 border-b p-2'>
@@ -60,7 +65,11 @@ export function DataTableCardsHeader<TData extends RowData>({
         }}
       </table.Subscribe>
 
-      <DataTableCardsSort table={table} setSortingOptions={setSortingOptions} />
+      <DataTableCardsSort
+        table={table}
+        setSortingOptions={setSortingOptions}
+        sortPresets={sortPresets}
+      />
     </div>
   );
 }

@@ -19,7 +19,8 @@
 
 import { Link, LinkOptions } from '@tanstack/react-router';
 import type { RowData } from '@tanstack/react-table';
-import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react';
+import { Check, ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react';
+import { useId } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -27,6 +28,7 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
@@ -35,6 +37,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { findMatchingSortPreset, SortPreset } from '@/helpers/sort-presets';
 import type { AppReactTable, AppTableState } from '@/hooks/use-app-table';
 import { cn } from '@/lib/utils';
 
@@ -43,18 +46,28 @@ const selectSortState = (state: AppTableState) => ({
   sorting: state.sorting,
 });
 
+/** Sortings that the sort menu offers to apply with one click, after the single columns. */
+export interface SortPresetOptions {
+  presets: SortPreset[];
+  setPresetOptions: (preset: SortPreset) => LinkOptions;
+}
+
 interface DataTableCardsSortProps<TData extends RowData> {
   table: AppReactTable<TData>;
   setSortingOptions?: (sorting: {
     id: string;
     desc: boolean | undefined;
   }) => LinkOptions;
+  sortPresets?: SortPresetOptions;
 }
 
 export function DataTableCardsSort<TData extends RowData>({
   table,
   setSortingOptions,
+  sortPresets,
 }: DataTableCardsSortProps<TData>) {
+  const presetsLabelId = useId();
+
   if (!setSortingOptions) return null;
 
   return (
@@ -78,6 +91,9 @@ export function DataTableCardsSort<TData extends RowData>({
         if (sortableColumns.length === 0) return null;
 
         const isSortingActive = sorting.length > 0;
+        const matchingPreset = sortPresets
+          ? findMatchingSortPreset(sorting, sortPresets.presets)
+          : undefined;
 
         return (
           <DropdownMenu>
@@ -147,6 +163,40 @@ export function DataTableCardsSort<TData extends RowData>({
                   );
                 })}
               </DropdownMenuGroup>
+              {sortPresets && sortPresets.presets.length > 0 && (
+                <DropdownMenuGroup aria-labelledby={presetsLabelId}>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel
+                    id={presetsLabelId}
+                    className='text-muted-foreground text-xs'
+                  >
+                    Presets
+                  </DropdownMenuLabel>
+                  {sortPresets.presets.map((preset) => {
+                    const isMatching = preset.id === matchingPreset?.id;
+
+                    return (
+                      <Tooltip key={preset.id}>
+                        <TooltipTrigger asChild>
+                          <Link {...sortPresets.setPresetOptions(preset)}>
+                            <DropdownMenuItem
+                              aria-current={isMatching ? 'true' : undefined}
+                            >
+                              {isMatching ? (
+                                <Check className='mr-2 h-4 w-4 text-blue-500' />
+                              ) : (
+                                <span className='mr-2 h-4 w-4' />
+                              )}
+                              <div>{preset.label}</div>
+                            </DropdownMenuItem>
+                          </Link>
+                        </TooltipTrigger>
+                        <TooltipContent>{preset.description}</TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
+                </DropdownMenuGroup>
+              )}
               {isSortingActive && (
                 <DropdownMenuGroup>
                   <DropdownMenuSeparator />
