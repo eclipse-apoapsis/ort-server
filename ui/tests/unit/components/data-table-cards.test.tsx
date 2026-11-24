@@ -165,7 +165,7 @@ describe('DataTableCardsSort column order', () => {
       'Third1',
       'First2',
       'Second',
-      'Clear Sorting',
+      'Reset',
     ]);
   });
 
@@ -176,7 +176,7 @@ describe('DataTableCardsSort column order', () => {
       'Second',
       'First',
       'Third',
-      'Clear Sorting',
+      'Reset',
     ]);
   });
 });
@@ -304,7 +304,7 @@ describe('DataTableCardsSort with presets', () => {
       'Hidden sort',
       'Ascending preset',
       'Descending preset',
-      'Clear Sorting',
+      'Reset',
     ]);
     expect(items[1]).not.toHaveAttribute('aria-current');
     expect(items[2]).toHaveAttribute('aria-current', 'true');

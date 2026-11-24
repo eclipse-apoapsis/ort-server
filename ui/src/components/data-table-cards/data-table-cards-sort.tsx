@@ -205,7 +205,7 @@ export function DataTableCardsSort<TData extends RowData>({
                     asChild
                   >
                     <Link {...setSortingOptions({ id: '', desc: undefined })}>
-                      Clear Sorting
+                      Reset
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
