@@ -19,28 +19,72 @@
 
 package org.eclipse.apoapsis.ortserver.dao
 
-import org.jetbrains.exposed.v1.core.SqlLogger
+import java.util.IdentityHashMap
+
+import kotlin.time.Duration.Companion.nanoseconds
+import kotlin.time.DurationUnit
+
+import org.jetbrains.exposed.v1.core.Key
 import org.jetbrains.exposed.v1.core.Transaction
 import org.jetbrains.exposed.v1.core.exposedLogger
+import org.jetbrains.exposed.v1.core.statements.GlobalStatementInterceptor
 import org.jetbrains.exposed.v1.core.statements.StatementContext
+import org.jetbrains.exposed.v1.core.statements.api.PreparedStatementApi
 import org.jetbrains.exposed.v1.core.statements.expandArgs
-import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
+import org.jetbrains.exposed.v1.jdbc.JdbcTransaction
 
 /**
- * SQL Queries logger that logs SQL queries at TRACE level.
- * As Exposed is logging SQL queries only on DEBUG level, using [org.jetbrains.exposed.sql.Slf4jSqlDebugLogger],
- * which is used as default in [org.jetbrains.exposed.sql.DatabaseConfig], to change the logging level to TRACE
- * this logger have to be used, and set as default logger.
+ * A statement interceptor that logs executed SQL statements together with their duration at TRACE level.
+ *
+ * Exposed's [org.jetbrains.exposed.v1.core.SqlLogger] cannot be used for this, because loggers are called before
+ * Exposed has measured the duration of a statement. Therefore, this interceptor measures the time between
+ * [beforeExecution] and [afterExecution] itself. This covers preparing and executing the statement. With the default
+ * fetch size of the PostgreSQL driver, this includes transferring all rows of a result, but not processing them in
+ * Exposed, which happens later when the result is iterated.
+ *
+ * A statement can be executed while another one is being executed, because Exposed DAO flushes pending entity changes
+ * in the `beforeExecution` callback of its own global interceptor. Therefore, the start times are stored per
+ * [StatementContext], and this interceptor has to be registered with [register], so that it is called after the
+ * interceptors of Exposed and the duration of a statement does not include the flushed statements.
  */
-object SqlQueryTraceLogger : SqlLogger {
+object SqlQueryTraceLogger : GlobalStatementInterceptor {
+    /** The key to store the start times of the statements that are currently executed in a transaction. */
+    private val startTimesKey = Key<MutableMap<StatementContext, Long>>()
+
     /**
-     * Logs a message containing the string representation of a complete SQL statement.
-     *
-     * **Note:** This is only logged if TRACE level is currently enabled.
+     * Register this interceptor for all transactions. It is added after the global interceptors that Exposed loads
+     * via the `ServiceLoader`, so that it is called after them. Calling this function multiple times has no effect.
      */
-    override fun log(context: StatementContext, transaction: Transaction) {
-        if (exposedLogger.isTraceEnabled) {
-            exposedLogger.trace(context.expandArgs(TransactionManager.current()))
+    fun register() {
+        val globalInterceptors = JdbcTransaction.globalInterceptors
+
+        synchronized(globalInterceptors) {
+            if (this !in globalInterceptors) globalInterceptors += this
+        }
+    }
+
+    override fun beforeExecution(transaction: Transaction, context: StatementContext) {
+        if (!exposedLogger.isTraceEnabled) return
+
+        val startTimes = transaction.getUserData(startTimesKey)
+            ?: IdentityHashMap<StatementContext, Long>().also { transaction.putUserData(startTimesKey, it) }
+
+        startTimes[context] = System.nanoTime()
+    }
+
+    override fun afterExecution(
+        transaction: Transaction,
+        contexts: List<StatementContext>,
+        executedStatement: PreparedStatementApi
+    ) {
+        val startTimes = transaction.getUserData(startTimesKey) ?: return
+        val startTime = contexts.mapNotNull { startTimes.remove(it) }.minOrNull() ?: return
+        if (startTimes.isEmpty()) transaction.removeUserData(startTimesKey)
+
+        val duration = (System.nanoTime() - startTime).nanoseconds.toString(DurationUnit.MILLISECONDS, decimals = 2)
+
+        contexts.forEach { context ->
+            exposedLogger.trace("[{}] {}", duration, context.expandArgs(transaction))
         }
     }
 }

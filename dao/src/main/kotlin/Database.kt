@@ -38,7 +38,10 @@ import org.flywaydb.core.api.configuration.FluentConfiguration
 
 import org.jetbrains.exposed.v1.core.DatabaseConfig
 import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.SqlLogger
+import org.jetbrains.exposed.v1.core.Transaction
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
+import org.jetbrains.exposed.v1.core.statements.StatementContext
 import org.jetbrains.exposed.v1.dao.LongEntity
 import org.jetbrains.exposed.v1.dao.LongEntityClass
 import org.jetbrains.exposed.v1.dao.exceptions.EntityNotFoundException
@@ -61,18 +64,29 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger(DataSource::class.java)
 
 /** Connect the database. */
-fun DataSource.connect() = Database.connect(
-    datasource = this,
-    databaseConfig = getDatabaseConfig()
-)
+fun DataSource.connect(): Database {
+    SqlQueryTraceLogger.register()
+
+    return Database.connect(
+        datasource = this,
+        databaseConfig = getDatabaseConfig()
+    )
+}
 
 private fun getDatabaseConfig(): DatabaseConfig =
     DatabaseConfig {
-        sqlLogger = SqlQueryTraceLogger
+        // Statements are logged with their duration by SqlQueryTraceLogger, which is registered in connect(). Disable
+        // the default logger of Exposed, which would log them again at DEBUG level.
+        sqlLogger = NoOpSqlLogger
 
         // This only affects transactions started with `suspendTransaction`.
         dispatcher = Dispatchers.Virtual
     }
+
+/** An [SqlLogger] that does not log anything. */
+private object NoOpSqlLogger : SqlLogger {
+    override fun log(context: StatementContext, transaction: Transaction) = Unit
+}
 
 /** Run the database migrations. */
 fun DataSource.migrate() {
