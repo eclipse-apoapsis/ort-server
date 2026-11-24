@@ -60,10 +60,20 @@ export function DataTableCardsSort<TData extends RowData>({
   return (
     <table.Subscribe selector={selectSortState}>
       {({ sorting }) => {
-        // Invisible sorting columns are rendered in the card header menu.
+        // Invisible sorting columns are rendered in the card header menu. The sorted columns
+        // come first, in the order they are sorted by, so that the menu shows which column
+        // counts first; the other columns keep their order.
+        const sortPosition = (columnId: string) => {
+          const index = sorting.findIndex((sort) => sort.id === columnId);
+          return index === -1 ? sorting.length : index;
+        };
         const sortableColumns = table
           .getAllColumns()
-          .filter((column) => !column.getIsVisible() && column.getCanSort());
+          .filter((column) => !column.getIsVisible() && column.getCanSort())
+          .sort((a, b) => sortPosition(a.id) - sortPosition(b.id));
+        const sortedColumnCount = sortableColumns.filter((column) =>
+          column.getIsSorted()
+        ).length;
 
         if (sortableColumns.length === 0) return null;
 
@@ -87,7 +97,7 @@ export function DataTableCardsSort<TData extends RowData>({
             </DropdownMenuTrigger>
             <DropdownMenuContent align='end'>
               <DropdownMenuGroup>
-                {sortableColumns.map((column) => {
+                {sortableColumns.map((column, index) => {
                   const isSorted = column.getIsSorted();
 
                   return (
@@ -111,6 +121,16 @@ export function DataTableCardsSort<TData extends RowData>({
                               <ChevronsUpDown className='mr-2 h-4 w-4' />
                             )}
                             <div>{column.columnDef.header?.toString()}</div>
+                            {isSorted && sortedColumnCount > 1 && (
+                              // The position is also given by the order of the items, so it is
+                              // hidden from screen readers to keep the item names unchanged.
+                              <span
+                                aria-hidden='true'
+                                className='text-muted-foreground ml-auto pl-4 text-xs'
+                              >
+                                {index + 1}
+                              </span>
+                            )}
                           </DropdownMenuItem>
                         </Link>
                       </TooltipTrigger>
