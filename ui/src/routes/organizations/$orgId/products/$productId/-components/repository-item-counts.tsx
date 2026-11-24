@@ -80,7 +80,10 @@ const RepositoryItemCountsStage2 = ({
           itemResolved: ['Unresolved'],
         },
         vulnerabilitiesSearch: {
-          sortBy: [{ id: 'rating', desc: true }],
+          sortBy: [
+            { id: 'rating', desc: true },
+            { id: 'epssScore', desc: true },
+          ],
           itemResolved: ['Unresolved'],
         },
         ruleViolationsSearch: {

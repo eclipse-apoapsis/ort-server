@@ -90,7 +90,10 @@ const Layout = () => {
           to: '/organizations/$orgId/products/$productId/repositories/$repoId/runs/$runIndex/vulnerabilities',
           params,
           search: {
-            sortBy: [{ id: 'rating', desc: true }],
+            sortBy: [
+              { id: 'rating', desc: true },
+              { id: 'epssScore', desc: true },
+            ],
             itemResolved: ['Unresolved'],
           },
           icon: () => <ShieldQuestion className='h-4 w-4' />,
