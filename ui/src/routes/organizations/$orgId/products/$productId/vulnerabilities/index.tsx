@@ -67,6 +67,10 @@ import {
 } from '@/helpers/handle-multisort';
 import { identifierToString } from '@/helpers/identifier-conversion';
 import {
+  formatReferenceScore,
+  formatReferenceVector,
+} from '@/helpers/vulnerability-statistics';
+import {
   createAppColumnHelper,
   selectNoTableState,
   useAppTable,
@@ -197,8 +201,8 @@ const renderSubComponent = ({
               <TableRow key={index}>
                 <TableCell>{reference.severity || '-'}</TableCell>
                 <TableCell>{reference.scoringSystem || '-'}</TableCell>
-                <TableCell>{reference.score || '-'}</TableCell>
-                <TableCell>{reference.vector || '-'}</TableCell>
+                <TableCell>{formatReferenceScore(reference)}</TableCell>
+                <TableCell>{formatReferenceVector(reference)}</TableCell>
                 <TableCell>
                   {
                     <Link
