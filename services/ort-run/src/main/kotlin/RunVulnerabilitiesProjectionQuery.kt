@@ -75,8 +75,26 @@ internal fun queryProjectedRunVulnerabilities(
 
             "purl" -> query.orderBy(table.purl to sortOrder)
 
+            "epssScore" -> {
+                // Vulnerabilities without an EPSS score come last in both directions.
+                val nullsLastSortOrder = when (orderField.direction) {
+                    OrderDirection.ASCENDING -> SortOrder.ASC_NULLS_LAST
+                    OrderDirection.DESCENDING -> SortOrder.DESC_NULLS_LAST
+                }
+
+                query.orderBy(table.epssScore to nullsLastSortOrder)
+            }
+
             else -> throw QueryParametersException("Unsupported field for sorting: '${orderField.name}'.")
         }
+    }
+
+    // Vulnerabilities with the same EPSS score, mostly those without one, are sorted by rating in the same direction,
+    // unless the rating is sorted by explicitly. This comes after all requested fields, so that it does not override
+    // them.
+    val epssScoreField = sortFields.find { it.name == "epssScore" }
+    if (epssScoreField != null && sortFields.none { it.name == "rating" }) {
+        query.orderBy(table.rating to epssScoreField.direction.toSortOrder())
     }
 
     query.orderBy(

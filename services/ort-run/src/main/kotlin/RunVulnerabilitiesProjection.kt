@@ -65,6 +65,7 @@ internal object ProjectedRunVulnerabilitiesTable : Table("projected_run_vulnerab
     val summary = text("summary").nullable()
     val description = text("description").nullable()
     val rating = integer("rating")
+    val epssScore = float("epss_score").nullable()
     val purl = text("purl")
     val identifierType = text("identifier_type")
     val identifierNamespace = text("identifier_namespace")
@@ -89,7 +90,7 @@ class RunVulnerabilitiesProjectionBuilder(private val chunkSize: Int = DEFAULT_C
         const val TYPE = "run-vulnerabilities"
 
         /** The current version of the schema of the projection. */
-        const val SCHEMA_VERSION = 1
+        const val SCHEMA_VERSION = 2
 
         /** The default number of affected packages for which the projection is built at once. */
         const val DEFAULT_CHUNK_SIZE = 500
@@ -159,6 +160,7 @@ class RunVulnerabilitiesProjectionBuilder(private val chunkSize: Int = DEFAULT_C
             this[ProjectedRunVulnerabilitiesTable.summary] = row[VulnerabilitiesTable.summary]
             this[ProjectedRunVulnerabilitiesTable.description] = row[VulnerabilitiesTable.description]
             this[ProjectedRunVulnerabilitiesTable.rating] = references.overallRating().ordinal
+            this[ProjectedRunVulnerabilitiesTable.epssScore] = references.highestEpssScore()
             this[ProjectedRunVulnerabilitiesTable.purl] =
                 purlsByIdentifierId[identifierId].orEmpty().ifEmpty { identifier.toFallbackPurl() }
             this[ProjectedRunVulnerabilitiesTable.identifierType] = identifier.type
@@ -268,3 +270,7 @@ private fun List<VulnerabilityReference>.overallRating(): VulnerabilityRating =
             else -> VulnerabilityRating.NONE
         }
     } ?: VulnerabilityRating.NONE
+
+/** Return the highest score of the EPSS references, or null if there are none. */
+private fun List<VulnerabilityReference>.highestEpssScore(): Float? =
+    filter { it.scoringSystem.equals("EPSS", ignoreCase = true) }.mapNotNull { it.score }.maxOrNull()
