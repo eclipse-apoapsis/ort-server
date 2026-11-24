@@ -319,7 +319,10 @@ val getRunVulnerabilities: RouteConfig.() -> Unit = {
     operationId = "getRunVulnerabilities"
     summary = "Get the vulnerabilities found in an ORT run"
     description = """
-        Supported sort fields are 'rating', 'externalId', 'identifier', and 'purl'.
+        Supported sort fields are 'rating', 'externalId', 'identifier', 'purl', and 'epssScore'. The 'epssScore' is the
+        highest EPSS probability among the references of a vulnerability. Vulnerabilities without an EPSS score come
+        last in both directions. Vulnerabilities with the same EPSS score are sorted by rating in the same direction,
+        unless 'rating' is also given as a sort field.
 
         The vulnerabilities are prepared for querying when they are requested for the first time. Usually, the request
         waits until they are prepared. If that takes too long, the response has the status 'Service Unavailable' and a
