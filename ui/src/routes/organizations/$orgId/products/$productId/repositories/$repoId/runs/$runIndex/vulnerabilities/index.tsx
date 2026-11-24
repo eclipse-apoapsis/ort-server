@@ -19,7 +19,7 @@
 
 import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ExpandedState } from '@tanstack/react-table';
+import { ExpandedState, SortingState } from '@tanstack/react-table';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { PackageURL } from 'packageurl-js';
 import { useState } from 'react';
@@ -88,6 +88,7 @@ import {
   getResolutionAccordionLabel,
   getResolvedStatus,
 } from '@/helpers/resolutions';
+import { SortPreset } from '@/helpers/sort-presets';
 import { getVersionsRelativeToReference } from '@/helpers/versions';
 import {
   findHighestEpssScore,
@@ -165,6 +166,34 @@ const supportedSortColumns = new Set([
   'rating',
   'epssScore',
 ]);
+
+/** Sort by severity first. The links that open the page use this sorting. */
+const severitySorting: SortingState = [
+  { id: 'rating', desc: true },
+  { id: 'epssScore', desc: true },
+];
+
+const exploitabilitySorting: SortingState = [
+  { id: 'epssScore', desc: true },
+  { id: 'rating', desc: true },
+];
+
+const sortPresets: SortPreset[] = [
+  {
+    id: 'severity',
+    label: 'Severity',
+    description:
+      'Highest rating first, then most likely to be exploited in the next 30 days.',
+    sorting: severitySorting,
+  },
+  {
+    id: 'exploitability',
+    label: 'Exploitability',
+    description:
+      'Most likely to be exploited in the next 30 days first, then highest rating.',
+    sorting: exploitabilitySorting,
+  },
+];
 
 const columnHelper = createAppColumnHelper<VulnerabilityWithDetails>();
 
@@ -729,6 +758,13 @@ const VulnerabilitiesComponent = () => {
                 sortBy: updateColumnSorting(search.sortBy, sortBy),
               },
             };
+          }}
+          sortPresets={{
+            presets: sortPresets,
+            setPresetOptions: (preset) => ({
+              to: Route.to,
+              search: { ...search, page: 1, sortBy: preset.sorting },
+            }),
           }}
         />
       </CardContent>

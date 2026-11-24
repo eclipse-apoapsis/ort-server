@@ -22,6 +22,7 @@ import type { RowData } from '@tanstack/react-table';
 import React from 'react';
 
 import { DataTableCardsHeader } from '@/components/data-table-cards/data-table-cards-header';
+import type { SortPresetOptions } from '@/components/data-table-cards/data-table-cards-sort';
 import { DataTableBody } from '@/components/data-table/data-table-body';
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
 import { Table } from '@/components/ui/table';
@@ -59,6 +60,7 @@ interface DataTableCardsProps<
     id: string;
     desc: boolean | undefined;
   }) => LinkOptions;
+  sortPresets?: SortPresetOptions;
 }
 
 export function DataTableCards<TData extends RowData>({
@@ -69,6 +71,7 @@ export function DataTableCards<TData extends RowData>({
   setCurrentPageOptions,
   setPageSizeOptions,
   setSortingOptions,
+  sortPresets,
   ...props
 }: DataTableCardsProps<TData>) {
   const { containerRef, columnSizing } = useTableSizing(table);
@@ -82,6 +85,7 @@ export function DataTableCards<TData extends RowData>({
       <DataTableCardsHeader
         table={table}
         setSortingOptions={setSortingOptions}
+        sortPresets={sortPresets}
       />
       <Table style={{ tableLayout: 'fixed' }}>
         <table.Subscribe selector={selectBodyState}>

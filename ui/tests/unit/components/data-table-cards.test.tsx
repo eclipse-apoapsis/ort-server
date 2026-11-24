@@ -252,6 +252,68 @@ describe('DataTableCardsSort', () => {
   });
 });
 
+const SortMenuWithPresetsHarness = () => {
+  const table = useAppTable(
+    {
+      data,
+      columns: [hiddenSortColumn],
+      state: {
+        columnVisibility: { sort: false },
+        sorting: [{ id: 'sort', desc: true }],
+      },
+    },
+    selectNoTableState
+  );
+
+  return (
+    <DataTableCardsSort
+      table={table}
+      setSortingOptions={setSortingOptions}
+      sortPresets={{
+        presets: [
+          {
+            id: 'ascending',
+            label: 'Ascending preset',
+            description: 'Sort ascending.',
+            sorting: [{ id: 'sort', desc: false }],
+          },
+          {
+            id: 'descending',
+            label: 'Descending preset',
+            description: 'Sort descending.',
+            sorting: [{ id: 'sort', desc: true }],
+          },
+        ],
+        setPresetOptions: () => ({ to: '/' }),
+      }}
+    />
+  );
+};
+
+describe('DataTableCardsSort with presets', () => {
+  it('lists the presets after the columns and marks the matching one', async () => {
+    const { user } = renderInteractiveWithRouter(
+      <SortMenuWithPresetsHarness />,
+      { path: '/sort', routes: [{ path: '/sort' }] }
+    );
+
+    await user.click(await screen.findByRole('button', { name: 'Sort' }));
+
+    const items = await screen.findAllByRole('menuitem');
+    expect(items.map((item) => item.textContent)).toEqual([
+      'Hidden sort',
+      'Ascending preset',
+      'Descending preset',
+      'Clear Sorting',
+    ]);
+    expect(items[1]).not.toHaveAttribute('aria-current');
+    expect(items[2]).toHaveAttribute('aria-current', 'true');
+    expect(screen.getByRole('group', { name: 'Presets' })).toContainElement(
+      items[1] ?? null
+    );
+  });
+});
+
 type CardRow = {
   category: string;
   name: string;
