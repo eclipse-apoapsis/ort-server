@@ -35,6 +35,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 
 import org.eclipse.apoapsis.ortserver.shared.coroutines.Virtual
 import org.eclipse.apoapsis.ortserver.storage.Key
@@ -43,10 +44,10 @@ import org.eclipse.apoapsis.ortserver.storage.StorageEntryInfo
 import org.eclipse.apoapsis.ortserver.storage.StorageProvider
 
 class AzureBlobStorageProvider(private val blobContainerClient: BlobContainerClient) : StorageProvider {
-    override suspend fun read(key: Key): StorageEntry {
+    override suspend fun read(key: Key): StorageEntry = withContext(Dispatchers.Virtual) {
         val blobClient = blobContainerClient.getBlobClient(key.key)
 
-        return StorageEntry.create(
+        StorageEntry.create(
             data = blobClient.openInputStream(),
             contentType = blobClient.blockBlobClient.properties.contentType,
             length = blobClient.blockBlobClient.properties.blobSize
@@ -54,20 +55,26 @@ class AzureBlobStorageProvider(private val blobContainerClient: BlobContainerCli
     }
 
     override suspend fun write(key: Key, data: InputStream, length: Long, contentType: String?) {
-        val blobClient = blobContainerClient.getBlobClient(key.key)
+        withContext(Dispatchers.Virtual) {
+            val blobClient = blobContainerClient.getBlobClient(key.key)
 
-        val headers = BlobHttpHeaders().setContentType(contentType)
-        val binaryData = BinaryData.fromStream(data, length)
-        val options = BlobParallelUploadOptions(binaryData)
-            .setRequestConditions(BlobRequestConditions())
-            .setHeaders(headers)
+            val headers = BlobHttpHeaders().setContentType(contentType)
+            val binaryData = BinaryData.fromStream(data, length)
+            val options = BlobParallelUploadOptions(binaryData)
+                .setRequestConditions(BlobRequestConditions())
+                .setHeaders(headers)
 
-        blobClient.uploadWithResponse(options, /* timeout = */ null, Context.NONE)
+            blobClient.uploadWithResponse(options, /* timeout = */ null, Context.NONE)
+        }
     }
 
-    override suspend fun contains(key: Key): Boolean = blobContainerClient.getBlobClient(key.key).exists()
+    override suspend fun contains(key: Key): Boolean = withContext(Dispatchers.Virtual) {
+        blobContainerClient.getBlobClient(key.key).exists()
+    }
 
-    override suspend fun delete(key: Key): Boolean = blobContainerClient.getBlobClient(key.key).deleteIfExists()
+    override suspend fun delete(key: Key): Boolean = withContext(Dispatchers.Virtual) {
+        blobContainerClient.getBlobClient(key.key).deleteIfExists()
+    }
 
     override fun list(prefix: String): Flow<StorageEntryInfo> = flow {
         val options = ListBlobsOptions().setPrefix(prefix.takeUnless { it.isEmpty() })
