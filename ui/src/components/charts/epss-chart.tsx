@@ -32,7 +32,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from '@/components/ui/chart';
-import { EpssData } from '@/helpers/vulnerability-statistics';
+import { EpssData, formatEpssValue } from '@/helpers/vulnerability-statistics';
 
 type EpssChartProps = {
   epssData: EpssData;
@@ -124,8 +124,9 @@ export const EpssChart = ({ epssData }: EpssChartProps) => {
                           </div>
                         </div>
                         <div className='flex items-baseline gap-0.5'>
-                          <div className='font-mono text-xs'>{value}</div>
-                          <span>%</span>
+                          <div className='font-mono text-xs'>
+                            {formatEpssValue(Number(value) / 100)}
+                          </div>
                         </div>
                       </div>
                     )}
@@ -210,8 +211,9 @@ export const EpssChart = ({ epssData }: EpssChartProps) => {
                           </div>
                         </div>
                         <div className='flex items-baseline gap-0.5'>
-                          <div className='font-mono text-xs'>{value}</div>
-                          <span>%</span>
+                          <div className='font-mono text-xs'>
+                            {formatEpssValue(Number(value) / 100)}
+                          </div>
                         </div>
                       </div>
                     )}

@@ -85,6 +85,10 @@ import {
 } from '@/helpers/resolutions';
 import { getVersionsRelativeToReference } from '@/helpers/versions';
 import {
+  formatReferenceScore,
+  formatReferenceVector,
+} from '@/helpers/vulnerability-statistics';
+import {
   splitVulnerabilityStatusSelection,
   toTriState,
   vulnerabilityStatusOptions,
@@ -573,8 +577,10 @@ const VulnerabilitiesComponent = () => {
                       <TableRow key={index}>
                         <TableCell>{reference.severity || '-'}</TableCell>
                         <TableCell>{reference.scoringSystem || '-'}</TableCell>
-                        <TableCell>{reference.score || '-'}</TableCell>
-                        <TableCell>{reference.vector || '-'}</TableCell>
+                        <TableCell>{formatReferenceScore(reference)}</TableCell>
+                        <TableCell>
+                          {formatReferenceVector(reference)}
+                        </TableCell>
                         <TableCell>
                           <Link
                             className='font-semibold break-all text-blue-400 hover:underline'
