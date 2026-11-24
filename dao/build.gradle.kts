@@ -62,6 +62,7 @@ dependencies {
     testImplementation(libs.kotest.assertions.core)
     testImplementation(libs.kotest.extensions.koin)
     testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.logback)
     testImplementation(libs.mockk)
     testImplementation(libs.testContainers.postgresql)
 
