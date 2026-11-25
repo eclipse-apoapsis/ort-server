@@ -27,12 +27,14 @@ import { z } from 'zod';
 import { postRepositorySecretMutation } from '@/api/@tanstack/react-query.gen';
 import { withRepositoryPermission } from '@/components/authorization';
 import { PasswordInput } from '@/components/form/password-input';
+import { HelpButton } from '@/components/help/help-button';
 import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
   CardFooter,
   CardHeader,
+  CardTitle,
 } from '@/components/ui/card';
 import {
   Form,
@@ -99,7 +101,12 @@ const CreateRepositorySecretPage = () => {
 
   return (
     <Card>
-      <CardHeader>Create Repository Secret</CardHeader>
+      <CardHeader>
+        <div className='flex items-center gap-1'>
+          <CardTitle>Create Repository Secret</CardTitle>
+          <HelpButton topic='secrets' />
+        </div>
+      </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-8'>
           <CardContent className='space-y-4'>
@@ -108,7 +115,10 @@ const CreateRepositorySecretPage = () => {
               name='name'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Name</FormLabel>
+                  <div className='flex items-center gap-1'>
+                    <FormLabel>Name</FormLabel>
+                    <HelpButton topic='secrets#name' />
+                  </div>
                   <FormControl autoFocus>
                     <Input {...field} />
                   </FormControl>
@@ -121,7 +131,10 @@ const CreateRepositorySecretPage = () => {
               name='value'
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Value</FormLabel>
+                  <div className='flex items-center gap-1'>
+                    <FormLabel>Value</FormLabel>
+                    <HelpButton topic='secrets#value' />
+                  </div>
                   <FormControl>
                     <PasswordInput {...field} />
                   </FormControl>
