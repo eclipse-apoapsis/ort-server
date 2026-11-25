@@ -24,14 +24,19 @@ opens its document in the help panel, scrolled to the section about that element
   level point at the same section. Different elements get different sections.
 - **Make each section readable on its own,** as the panel opens in the middle of the document.
   Background shared by several sections belongs in the overview.
+- **Link to other concepts instead of explaining them again.** Write the file name of the other
+  document, optionally followed by a section ID: `[secret](secrets.md)` or
+  `[its name](secrets.md#name)`. The panel shows the linked document, scrolled to the section.
+  Every other link must be an absolute URL, which opens in a new tab.
 
 ## Updating the index
 
 `index.gen.ts` lists the documents with their titles and sections. It is generated, so do not edit
 it; run `pnpm generate:help` after adding a document or changing its headings. `pnpm dev` does
 this on its own whenever a document is added, changed or deleted, and prints the reason in its
-terminal when a document cannot be indexed, for example because it has no level one heading. A
-unit test fails when the index is out of date.
+terminal when a document cannot be indexed, for example because it has no level one heading or
+links to a document or section that does not exist. A unit test fails when the index is out of
+date.
 
 ## Adding a help button
 

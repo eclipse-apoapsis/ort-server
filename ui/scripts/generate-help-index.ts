@@ -125,15 +125,57 @@ export const parseHelpDocument = (
   return { title, sections };
 };
 
+/**
+ * Check that the links of a help document lead somewhere: a link is either an absolute URL or
+ * points at another help document, optionally followed by `#` and a section ID, such as
+ * `secrets.md#name`. The help panel opens such links itself, and Docusaurus resolves them too.
+ */
+export const checkHelpLinks = (
+  fileName: string,
+  markdown: string,
+  index: Record<string, HelpDocumentEntry>
+) => {
+  const tree = parseMarkdown(markdown);
+
+  // Definitions hold the targets of reference links, such as `[secrets]: secrets.md`.
+  for (const { url: target = '' } of [
+    ...findNodes(tree, 'link'),
+    ...findNodes(tree, 'definition'),
+  ]) {
+    if (/^[a-z][a-z\d+.-]*:/i.test(target)) continue;
+
+    const [, document = '', section] =
+      /^([\w-]+)\.md(?:#([\w-]+))?$/.exec(target) ?? [];
+    const entry = index[document];
+
+    if (!entry || (section !== undefined && !(section in entry.sections))) {
+      throw new Error(
+        `The help document '${fileName}' links to '${target}', which is not a help document or one of its sections.`
+      );
+    }
+  }
+};
+
 /** Generate the formatted content of the help index from the help documents in the given directory. */
 export const generateHelpIndex = async (helpDir = HELP_DIR) => {
   const index: Record<string, HelpDocumentEntry> = {};
+  const documents = readdirSync(helpDir)
+    .filter(isHelpDocument)
+    .sort()
+    .map((fileName) => ({
+      fileName,
+      markdown: readFileSync(join(helpDir, fileName), 'utf8'),
+    }));
 
-  for (const fileName of readdirSync(helpDir).filter(isHelpDocument).sort()) {
+  for (const { fileName, markdown } of documents) {
     index[fileName.slice(0, -'.md'.length)] = parseHelpDocument(
       fileName,
-      readFileSync(join(helpDir, fileName), 'utf8')
+      markdown
     );
+  }
+
+  for (const { fileName, markdown } of documents) {
+    checkHelpLinks(fileName, markdown, index);
   }
 
   const source = [

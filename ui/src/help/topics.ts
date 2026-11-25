@@ -49,6 +49,19 @@ export const parseHelpTopic = (topic: string) => {
   return { document, section };
 };
 
+/**
+ * Return the help topic that a link in a help document points at, such as `secrets#name` for
+ * `secrets.md#name`, or undefined if the link leads elsewhere. `pnpm generate:help` checks that
+ * the linked documents and sections exist.
+ */
+export const parseHelpLink = (href: string) => {
+  const [, document, section] = /^([\w-]+)\.md(?:#([\w-]+))?$/.exec(href) ?? [];
+
+  if (!document || !(document in index)) return undefined;
+
+  return section ? `${document}#${section}` : document;
+};
+
 /** Return the title of the section of a help topic, or of its document if it has no section. */
 export const getHelpTopicTitle = (topic: string) => {
   const { document, section } = parseHelpTopic(topic);

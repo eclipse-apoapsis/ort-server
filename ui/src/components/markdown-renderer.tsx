@@ -17,6 +17,7 @@
  * License-Filename: LICENSE
  */
 
+import type { ReactNode } from 'react';
 import Markdown, { type Options } from 'react-markdown';
 
 import { cn } from '@/lib/utils';
@@ -25,12 +26,33 @@ type MarkdownRendererProps = {
   markdown?: string;
   className?: string;
   remarkPlugins?: Options['remarkPlugins'];
+  // Components that replace the default ones for some elements.
+  components?: Options['components'];
 };
+
+/** A link in rendered Markdown, which opens in a new tab. */
+export const MarkdownLink = ({
+  children,
+  href,
+}: {
+  children?: ReactNode;
+  href?: string;
+}) => (
+  <a
+    href={href}
+    target='_blank'
+    rel='noopener noreferrer'
+    className='font-semibold text-blue-400 hover:underline'
+  >
+    {children}
+  </a>
+);
 
 export const MarkdownRenderer = ({
   markdown,
   className,
   remarkPlugins,
+  components,
 }: MarkdownRendererProps) => {
   return (
     <div className={cn('prose dark:prose-invert text-sm', className)}>
@@ -107,16 +129,8 @@ export const MarkdownRenderer = ({
           code: ({ children }) => {
             return <code className='p-1'>{children}</code>;
           },
-          a: ({ children, href }) => (
-            <a
-              href={href}
-              target='_blank'
-              rel='noopener noreferrer'
-              className='font-semibold text-blue-400 hover:underline'
-            >
-              {children}
-            </a>
-          ),
+          a: MarkdownLink,
+          ...components,
         }}
       >
         {markdown}

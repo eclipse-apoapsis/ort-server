@@ -20,6 +20,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  checkHelpLinks,
   generateHelpIndex,
   parseHelpDocument,
   readHelpIndex,
@@ -83,5 +84,53 @@ describe('parseHelpDocument', () => {
     expect(() =>
       parseHelpDocument('test.md', '# Title\n\n## A {#a}\n\n## B {#a}')
     ).toThrow("The help document 'test.md' has more than one section 'a'.");
+  });
+});
+
+describe('checkHelpLinks', () => {
+  const index = {
+    secrets: { title: 'Secrets', sections: { name: 'Name' } },
+  };
+
+  it('accepts links to help documents, their sections and absolute URLs', () => {
+    const markdown = [
+      'Keep it in [a secret](secrets.md).',
+      'Look it up by [its name](secrets.md#name).',
+      'Read [the user guide](https://example.org/guide#secrets).',
+      '```markdown\n[an example](missing.md)\n```',
+      'Keep it in [a secret](secrets.md "Secrets") or [one][secrets].',
+      '[secrets]: secrets.md#name',
+    ].join('\n\n');
+
+    expect(() => checkHelpLinks('test.md', markdown, index)).not.toThrow();
+  });
+
+  it.each([
+    ['a link', (target: string) => `See [this](${target}).`],
+    [
+      'a link with a title',
+      (target: string) => `See [this](${target} "This").`,
+    ],
+    [
+      'a reference link',
+      (target: string) => `See [this][ref].\n\n[ref]: ${target}`,
+    ],
+  ])('checks the target of %s', (_, link) => {
+    expect(() =>
+      checkHelpLinks('test.md', link('secrets.md#missing'), index)
+    ).toThrow("links to 'secrets.md#missing'");
+  });
+
+  it.each([
+    'missing.md',
+    'secrets.md#missing',
+    'secrets#name',
+    '../secrets.md',
+  ])("rejects a link to '%s'", (target) => {
+    expect(() =>
+      checkHelpLinks('test.md', `See [this](${target}).`, index)
+    ).toThrow(
+      `The help document 'test.md' links to '${target}', which is not a help document or one of its sections.`
+    );
   });
 });
