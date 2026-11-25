@@ -37,7 +37,11 @@ const documents: Record<string, string> = {
     '## Beta {#beta}',
     'The beta section.',
   ].join('\n\n'),
-  second: '# Second Document\n\nThe overview of the second document.',
+  second: [
+    '# Second Document',
+    'The overview of the second document.',
+    'Read [the beta section](first.md#beta) or [the website](https://example.org).',
+  ].join('\n\n'),
 };
 
 vi.mock('@/help/index.gen', () => ({
@@ -166,6 +170,28 @@ describe('HelpPanel', () => {
     expect(
       await screen.findByRole('dialog', { name: 'Second Document' })
     ).toHaveTextContent('The overview of the second document.');
+  });
+
+  it('shows the target of a link to another help document', async () => {
+    const { user } = await renderPage();
+
+    await user.click(helpButton('Second Document'));
+    await screen.findByRole('dialog', { name: 'Second Document' });
+    expect(screen.getByRole('link', { name: 'the website' })).toHaveAttribute(
+      'href',
+      'https://example.org'
+    );
+    await user.click(screen.getByRole('button', { name: 'the beta section' }));
+
+    const panel = await screen.findByRole('dialog', { name: 'First Document' });
+    const beta = await screen.findByRole('heading', { name: 'Beta' });
+    await waitFor(() =>
+      expect(beta.closest('section')).toHaveAttribute(
+        'data-highlighted-section'
+      )
+    );
+    expect(panel).toHaveFocus();
+    expect(helpButton('Beta')).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('closes with the help button of the shown topic', async () => {

@@ -19,10 +19,10 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouterState } from '@tanstack/react-router';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 
 import { LoadingIndicator } from '@/components/loading-indicator';
-import { MarkdownRenderer } from '@/components/markdown-renderer';
+import { MarkdownLink, MarkdownRenderer } from '@/components/markdown-renderer';
 import {
   Sheet,
   SheetContent,
@@ -32,6 +32,7 @@ import {
 import {
   getHelpTopicTitle,
   loadHelpDocument,
+  parseHelpLink,
   parseHelpTopic,
 } from '@/help/topics';
 import { remarkHeadingIds } from '@/lib/remark-heading-ids';
@@ -48,6 +49,36 @@ const TABBABLE_SELECTOR =
 // Remove the level one heading, which is the title of a help document and shown as the title of
 // the panel.
 const removeTitle = (markdown: string) => markdown.replace(/^# .*\n/, '');
+
+// A link to another help document, or to a section of one, shows it in the panel. Other links open
+// in a new tab.
+const HelpDocumentLink = ({
+  children,
+  href,
+}: {
+  children?: ReactNode;
+  href?: string;
+}) => {
+  const open = useHelpPanelStore((state) => state.open);
+  const trigger = useHelpPanelStore((state) => state.trigger);
+  const topic = href ? parseHelpLink(href) : undefined;
+
+  if (!topic) return <MarkdownLink href={href}>{children}</MarkdownLink>;
+
+  return (
+    <button
+      type='button'
+      className='cursor-pointer font-semibold text-blue-400 hover:underline'
+      onClick={(event) => {
+        // The link disappears when the document changes, so keep the focus in the panel.
+        event.currentTarget.closest<HTMLElement>('[role=dialog]')?.focus();
+        open(topic, trigger);
+      }}
+    >
+      {children}
+    </button>
+  );
+};
 
 const HelpDocumentText = ({
   text,
@@ -83,6 +114,7 @@ const HelpDocumentText = ({
         [remarkHeadingIds, { prefix: SECTION_ID_PREFIX }],
         remarkSections,
       ]}
+      components={{ a: HelpDocumentLink }}
     />
   );
 };
