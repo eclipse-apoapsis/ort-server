@@ -453,7 +453,7 @@ describe('independent detected-license tables', () => {
   });
 
   it('returns to the first page when the license sorting changes', async () => {
-    const { user, router } = renderView({ page: 3 });
+    const { user, router } = renderView({ page: 2 });
     const header = await screen.findByRole('columnheader', {
       name: 'Detected License',
     });

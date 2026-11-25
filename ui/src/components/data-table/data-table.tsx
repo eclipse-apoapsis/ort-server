@@ -17,9 +17,9 @@
  * License-Filename: LICENSE
  */
 
-import { LinkOptions } from '@tanstack/react-router';
+import { LinkOptions, useNavigate } from '@tanstack/react-router';
 import type { RowData } from '@tanstack/react-table';
-import React from 'react';
+import React, { useEffect } from 'react';
 
 import { DataTablePagination } from '@/components/data-table/data-table-pagination';
 import { Table } from '@/components/ui/table';
@@ -49,6 +49,33 @@ const selectPaginationState = (state: AppTableState) => ({
   pagination: state.pagination,
   sorting: state.sorting,
 });
+
+type RedirectToLastPageProps = {
+  currentPage: number;
+  totalPages: number;
+  setCurrentPageOptions: (page: number) => LinkOptions;
+};
+
+/**
+ * Navigate to the last page if the current page is beyond it, for instance because the last entry of the last page
+ * was deleted or an outdated link was opened. Otherwise, an empty page without pagination would be shown, and the
+ * remaining entries could not be reached.
+ */
+const RedirectToLastPage = ({
+  currentPage,
+  totalPages,
+  setCurrentPageOptions,
+}: RedirectToLastPageProps) => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (totalPages > 0 && currentPage > totalPages) {
+      navigate({ ...setCurrentPageOptions(totalPages), replace: true });
+    }
+  }, [currentPage, totalPages, setCurrentPageOptions, navigate]);
+
+  return null;
+};
 
 interface DataTableProps<
   TData extends RowData,
@@ -109,7 +136,15 @@ export function DataTable<TData extends RowData>({
       </Table>
       <table.Subscribe selector={selectPaginationState}>
         {({ pagination }) => {
-          if (table.getRowModel().rows.length === 0) return null;
+          if (table.getRowModel().rows.length === 0) {
+            return (
+              <RedirectToLastPage
+                currentPage={pagination.pageIndex + 1}
+                totalPages={table.getPageCount()}
+                setCurrentPageOptions={setCurrentPageOptions}
+              />
+            );
+          }
 
           return (
             <div className='flex flex-col gap-2.5'>
