@@ -47,4 +47,5 @@ export const helpIndex = {
       notifier: 'Notifier',
     },
   },
+  secrets: { title: 'Secrets', sections: { name: 'Name', value: 'Value' } },
 } as const;

@@ -23,9 +23,13 @@ import { screen, waitFor, within } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Secret } from '@/api';
+import { HelpPanel } from '@/components/help/help-panel';
 import { Route as RepositoryRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets';
+import { Route as RepositoryCreateRoute } from '@/routes/organizations/$orgId/products/$productId/repositories/$repoId/_repo-layout/secrets/create-secret';
 import { Route as ProductRoute } from '@/routes/organizations/$orgId/products/$productId/secrets';
+import { Route as ProductCreateRoute } from '@/routes/organizations/$orgId/products/$productId/secrets/create-secret';
 import { Route as OrganizationRoute } from '@/routes/organizations/$orgId/secrets';
+import { Route as OrganizationCreateRoute } from '@/routes/organizations/$orgId/secrets/create-secret';
 import { renderInteractiveWithRouter } from '../fixtures/render-interactive';
 import { hierarchyLevels, pageOf } from '../fixtures/table';
 
@@ -60,6 +64,15 @@ const levels = {
   product: { ...product, route: ProductRoute },
   repository: { ...repository, route: RepositoryRoute },
 };
+
+const createRoutes = [
+  OrganizationCreateRoute,
+  ProductCreateRoute,
+  RepositoryCreateRoute,
+];
+const createLevels = hierarchyLevels('secrets/create-secret').map(
+  (level, index) => ({ ...level, route: createRoutes[index]! })
+);
 
 const createSecrets = (prefix: string, count: number): Secret[] =>
   Array.from({ length: count }, (_, index) => ({
@@ -402,4 +415,44 @@ describe('secrets pages', () => {
       expectOwnActions(await findCard(level.title), true);
     });
   });
+
+  it.each(createLevels)(
+    'opens the help for a field of the $level create form and follows its link',
+    async (level) => {
+      const CreateComponent = level.route.options.component!;
+      const { user } = renderInteractiveWithRouter(
+        <>
+          <CreateComponent />
+          <HelpPanel />
+        </>,
+        { path: level.path, routes: level.routes, withQueryClient: true }
+      );
+
+      await user.click(
+        await screen.findByRole('button', { name: 'Help: Value' })
+      );
+
+      const panel = await screen.findByRole('dialog', { name: 'Secrets' });
+      await waitFor(() =>
+        expect(
+          screen.getByRole('heading', { name: 'Value' }).closest('section')
+        ).toHaveAttribute('data-highlighted-section')
+      );
+
+      // The secrets document links to the section of the infrastructure services document
+      // about the username secret.
+      await user.click(
+        within(panel).getByRole('button', { name: 'infrastructure service' })
+      );
+
+      await screen.findByRole('dialog', { name: 'Infrastructure Services' });
+      await waitFor(() =>
+        expect(
+          screen
+            .getByRole('heading', { name: 'Username Secret' })
+            .closest('section')
+        ).toHaveAttribute('data-highlighted-section')
+      );
+    }
+  );
 });

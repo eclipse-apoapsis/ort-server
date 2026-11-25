@@ -9,10 +9,10 @@ A service can be defined for an organization, a product or a repository. If seve
 share the same credentials, define the service for their product or organization. Repositories
 can also declare services in their `.ort.env.yml` file.
 
-The username and the password of a service are not entered here but kept in secrets, so that the
-confidential values stay out of the service definition. A secret has to exist before a service
-can use it; create it on the **Secrets** page of the organization, the product or the repository.
-The value of a secret cannot be read after it has been created, only replaced.
+The username and the password of a service are not entered here but kept in
+[secrets](secrets.md), so that the confidential values stay out of the service definition. A
+secret has to exist before a service can use it; create it on the **Secrets** page of the
+organization, the product or the repository.
 
 [Read more about external services](https://eclipse-apoapsis.github.io/ort-server/docs/user-guide/concepts/external-services)
 
@@ -33,8 +33,8 @@ server. For example, a service with the URL `https://repo.example.org/team-a` is
 
 ## Username Secret {#username-secret-ref}
 
-The secret that holds the username for accessing the service. Select the name of an existing
-secret, not the username itself.
+The secret that holds the username for accessing the service. Select the
+[name of an existing secret](secrets.md#name), not the username itself.
 
 A username is required even when the service does not need one, for example when the password is
 a personal access token. In that case, use a secret with any value.
@@ -42,7 +42,7 @@ a personal access token. In that case, use a secret with any value.
 ## Password Secret {#password-secret-ref}
 
 The secret that holds the password or the personal access token for accessing the service.
-Select the name of an existing secret, not the password itself.
+Select the [name of an existing secret](secrets.md#name), not the password itself.
 
 ## Add Credentials To Files {#credentials-types}
 
