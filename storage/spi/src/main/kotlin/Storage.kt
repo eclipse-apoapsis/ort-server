@@ -23,6 +23,7 @@ import java.io.ByteArrayInputStream
 import java.io.InputStream
 import java.util.ServiceLoader
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.emitAll
@@ -140,10 +141,14 @@ class Storage(
      */
     fun list(prefix: String = ""): Flow<StorageEntryInfo> =
         flow { emitAll(provider.list(prefix)) }.catch { e ->
+            if (e is CancellationException) throw e
             throw StorageException("Exception from StorageProvider.", e)
         }
 
-    /** Execute [block] on the wrapped [StorageProvider] and map occurring exceptions to [StorageException]s. */
+    /**
+     * Execute [block] on the wrapped [StorageProvider] and map occurring exceptions to [StorageException]s. A
+     * [CancellationException] is rethrown as is to not break the cancellation of coroutines.
+     */
     private suspend fun <T> wrapException(block: suspend StorageProvider.() -> T): T =
         @Suppress("TooGenericExceptionCaught")
         try {
@@ -152,6 +157,8 @@ class Storage(
             supervisorScope {
                 provider.block()
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
             throw StorageException("Exception from StorageProvider.", e)
         }

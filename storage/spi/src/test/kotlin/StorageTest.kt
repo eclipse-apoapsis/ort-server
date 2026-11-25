@@ -31,10 +31,14 @@ import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
+import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 
 import java.io.ByteArrayInputStream
 
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.toList
 
 import org.eclipse.apoapsis.ortserver.config.ConfigManager
@@ -191,6 +195,16 @@ class StorageTest : WordSpec({
                 storage.containsKey(Key(ERROR_KEY))
             }
         }
+
+        "not wrap a CancellationException thrown by the provider" {
+            val provider = mockk<StorageProvider> {
+                coEvery { contains(any()) } throws CancellationException("Test cancellation.")
+            }
+
+            shouldThrow<CancellationException> {
+                Storage(provider).containsKey(Key("anyKey"))
+            }
+        }
     }
 
     "delete" should {
@@ -266,6 +280,16 @@ class StorageTest : WordSpec({
 
             shouldThrow<StorageException> {
                 storage.list(ERROR_KEY).toList()
+            }
+        }
+
+        "not wrap a CancellationException thrown by the provider" {
+            val provider = mockk<StorageProvider> {
+                every { list(any()) } returns flow { throw CancellationException("Test cancellation.") }
+            }
+
+            shouldThrow<CancellationException> {
+                Storage(provider).list().toList()
             }
         }
     }
