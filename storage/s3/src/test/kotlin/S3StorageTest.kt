@@ -243,6 +243,14 @@ class S3StorageTest : WordSpec({
 
             storage.containsKey(key) shouldBe true
         }
+
+        "throw a StorageException if the request fails" {
+            val storage = floci.createStorage(endpointUrl = UNREACHABLE_ENDPOINT_URL)
+
+            shouldThrow<StorageException> {
+                storage.containsKey(Key("test-object"))
+            }
+        }
     }
 
     "delete" should {
@@ -279,6 +287,14 @@ class S3StorageTest : WordSpec({
 
             storage.delete(key) shouldBe true
             storage.containsKey(key) shouldBe false
+        }
+
+        "throw a StorageException if the request fails" {
+            val storage = floci.createStorage(endpointUrl = UNREACHABLE_ENDPOINT_URL)
+
+            shouldThrow<StorageException> {
+                storage.delete(Key("test-object"))
+            }
         }
     }
 
@@ -333,17 +349,21 @@ class S3StorageTest : WordSpec({
 internal const val S3_REGION = "eu-central-1"
 internal const val TEST_BUCKET_NAME = "test-bucket"
 
+/** The URL of an endpoint that cannot be reached, to provoke failing requests. */
+private const val UNREACHABLE_ENDPOINT_URL = "http://localhost:1"
+
 /** Create a [Storage] that is configured to use the [S3StorageProvider] implementation. */
 private fun FlociContainer.createStorage(
     region: String = S3_REGION,
     bucket: String = TEST_BUCKET_NAME,
-    keyPrefix: String? = null
+    keyPrefix: String? = null,
+    endpointUrl: String = endpoint.toString()
 ): Storage {
     val config = ConfigFactory.parseMap(
         mapOf(
             bucket to mapOf(
                 "name" to "s3",
-                S3StorageProviderFactory.ENDPOINT_URL_PROPERTY to endpoint.toString(),
+                S3StorageProviderFactory.ENDPOINT_URL_PROPERTY to endpointUrl,
                 S3StorageProviderFactory.ACCESS_KEY_PROPERTY to accessKey,
                 S3StorageProviderFactory.SECRET_KEY_PROPERTY to secretKey,
                 S3StorageProviderFactory.REGION_PROPERTY to region,

@@ -24,6 +24,7 @@ import aws.sdk.kotlin.services.s3.deleteObject
 import aws.sdk.kotlin.services.s3.model.GetObjectRequest
 import aws.sdk.kotlin.services.s3.model.HeadObjectRequest
 import aws.sdk.kotlin.services.s3.model.ListObjectsV2Request
+import aws.sdk.kotlin.services.s3.model.NotFound
 import aws.sdk.kotlin.services.s3.model.Object
 import aws.sdk.kotlin.services.s3.model.PutObjectRequest
 import aws.sdk.kotlin.services.s3.paginators.listObjectsV2Paginated
@@ -102,26 +103,37 @@ class S3StorageProvider(
         }
     }
 
-    /** Check if an object with the given [key] exists in the S3 bucket. */
-    override suspend fun contains(key: Key): Boolean = runCatching {
-        s3Client.headObject(
-            HeadObjectRequest {
-                this.bucket = bucketName
-                this.key = prefixKey(key)
-            }
-        )
-    }.isSuccess
+    /**
+     * Check if an object with the given [key] exists in the S3 bucket. Only a [NotFound] response means that the object
+     * does not exist; other failures, such as missing permissions, are propagated.
+     */
+    override suspend fun contains(key: Key): Boolean =
+        try {
+            s3Client.headObject(
+                HeadObjectRequest {
+                    this.bucket = bucketName
+                    this.key = prefixKey(key)
+                }
+            )
 
-    /** Delete the object for the provided key in the S3 bucket. */
-    override suspend fun delete(key: Key): Boolean = if (contains(key)) {
-        runCatching {
-            s3Client.deleteObject {
-                this.bucket = bucketName
-                this.key = prefixKey(key)
-            }
-        }.isSuccess
-    } else {
-        false
+            true
+        } catch (_: NotFound) {
+            false
+        }
+
+    /**
+     * Delete the object for the provided [key] in the S3 bucket. Return *false* if the object does not exist. Failures
+     * of the delete operation are propagated.
+     */
+    override suspend fun delete(key: Key): Boolean {
+        if (!contains(key)) return false
+
+        s3Client.deleteObject {
+            this.bucket = bucketName
+            this.key = prefixKey(key)
+        }
+
+        return true
     }
 
     /**
