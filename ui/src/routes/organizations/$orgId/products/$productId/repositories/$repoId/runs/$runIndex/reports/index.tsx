@@ -57,36 +57,34 @@ const ReportComponent = () => {
     runId: number;
     fileName: string;
   }) => {
-    try {
-      const response = await fetch(
-        `${API_URL}/api/v1/runs/${runId}/reporter/${fileName}`,
-        {
-          headers: {
-            Authorization: `Bearer ${user?.access_token}`,
-          },
+    await fetch(`${API_URL}/api/v1/runs/${runId}/reporter/${fileName}`, {
+      headers: {
+        Authorization: `Bearer ${user?.access_token}`,
+      },
+    })
+      .then(async (response) => {
+        // Check if the response status is not in the 2xx range
+        if (!response.ok) {
+          toastError('Unable to download report', new Error());
+          return;
         }
-      );
 
-      // Check if the response status is not in the 2xx range
-      if (!response.ok) {
-        throw new Error();
-      }
-
-      // Convert the response to a Blob
-      const blob = await response.blob();
-      // Create a temporary URL for the Blob
-      const url = window.URL.createObjectURL(blob);
-      // Create an anchor element
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      // Programmatically trigger a click event on the anchor element
-      a.click();
-      // Clean up by revoking the URL
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      toastError('Unable to download report', error);
-    }
+        // Convert the response to a Blob
+        const blob = await response.blob();
+        // Create a temporary URL for the Blob
+        const url = window.URL.createObjectURL(blob);
+        // Create an anchor element
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        // Programmatically trigger a click event on the anchor element
+        a.click();
+        // Clean up by revoking the URL
+        window.URL.revokeObjectURL(url);
+      })
+      .catch((error: unknown) => {
+        toastError('Unable to download report', error);
+      });
   };
 
   async function handleDownload(runId: number, filename: string) {

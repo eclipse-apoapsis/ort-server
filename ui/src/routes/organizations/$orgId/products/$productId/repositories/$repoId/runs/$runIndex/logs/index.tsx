@@ -65,39 +65,39 @@ const ReportComponent = () => {
     steps: string = ''
   ) => {
     setIsPending(true);
-    try {
-      const response = await fetch(
-        `${API_URL}/api/v1/runs/${runId}/logs?level=${level}&steps=${steps}`,
-        {
-          headers: {
-            Authorization: `Bearer ${user?.access_token}`,
-          },
-        }
-      );
-
-      // Check if the response status is not in the 2xx range
-      if (!response.ok) {
-        throw new Error();
+    await fetch(
+      `${API_URL}/api/v1/runs/${runId}/logs?level=${level}&steps=${steps}`,
+      {
+        headers: {
+          Authorization: `Bearer ${user?.access_token}`,
+        },
       }
+    )
+      .then(async (response) => {
+        // Check if the response status is not in the 2xx range
+        if (!response.ok) {
+          toastError('Unable to download logs', new Error());
+          return;
+        }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      const filename = response.headers
-        .get('content-disposition')
-        ?.split(';')
-        .find((entry) => entry.includes('filename='))
-        ?.replace('filename=', '')
-        .trim();
-      a.download = filename ?? `run-${runId}-${level}-logs.zip`;
-      a.click();
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      toastError('Unable to download logs', error);
-    } finally {
-      setIsPending(false);
-    }
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const filename = response.headers
+          .get('content-disposition')
+          ?.split(';')
+          .find((entry) => entry.includes('filename='))
+          ?.replace('filename=', '')
+          .trim();
+        a.download = filename ?? `run-${runId}-${level}-logs.zip`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      })
+      .catch((error: unknown) => {
+        toastError('Unable to download logs', error);
+      });
+    setIsPending(false);
   };
 
   const handleLevelChoice = (level: string) => {
