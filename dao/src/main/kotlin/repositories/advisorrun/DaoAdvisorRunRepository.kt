@@ -36,7 +36,9 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.HealthMetric
 
+import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.insert
@@ -64,6 +66,11 @@ class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
 
         createAdvisorConfiguration(advisorRunDao, config)
 
+        // Every package rated by an advisor reports the same definitions, so remember the ones already looked up.
+        val definitionIds = mutableMapOf<HealthMetric, EntityID<Long>>()
+        fun getDefinitionId(metric: HealthMetric) =
+            definitionIds.getOrPut(metric.withoutValues()) { HealthMetricDefinitionDao.getOrPut(metric).id }
+
         results.forEach { (id, advisorResults) ->
             val identifierDao = IdentifierDao.getOrPut(id)
 
@@ -74,12 +81,28 @@ class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
 
             advisorResults.forEach { result ->
                 val vulnerabilities = mapAndDeduplicate(result.vulnerabilities, VulnerabilityDao::getOrPut)
-                AdvisorResultDao.new {
+                val advisorResultDao = AdvisorResultDao.new {
                     this.advisorRunIdentifier = advisorRunIdentifierDao
                     this.advisorName = result.advisorName
                     this.startTime = result.startTime
                     this.endTime = result.endTime
                     this.vulnerabilities = vulnerabilities
+                }
+
+                result.healthMetrics.forEach { metric ->
+                    HealthMetricsTable.insert(metric, getDefinitionId(metric), advisorResultId = advisorResultDao.id)
+                }
+
+                result.healthSummary?.let { summary ->
+                    val healthSummaryId = HealthSummariesTable.insert(summary, advisorResultDao.id)
+
+                    summary.overallScore?.let { overallScore ->
+                        HealthMetricsTable.insert(
+                            overallScore,
+                            getDefinitionId(overallScore),
+                            healthSummaryId = healthSummaryId
+                        )
+                    }
                 }
 
                 result.issues.forEach { issue ->
@@ -108,6 +131,10 @@ class DaoAdvisorRunRepository(private val db: Database) : AdvisorRunRepository {
         AdvisorRunDao.find { AdvisorRunsTable.advisorJobId eq advisorJobId }.firstOrNull()?.mapToModel()
     }.getEntityOrNull()
 }
+
+/** Return a copy of this [HealthMetric] that keeps only the properties stored in its definition. */
+private fun HealthMetric.withoutValues() =
+    copy(value = null, referenceValue = null, criticality = null, reason = null, details = emptyList())
 
 private fun createAdvisorConfiguration(
     advisorRunDao: AdvisorRunDao,

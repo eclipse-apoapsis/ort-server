@@ -24,6 +24,8 @@ import org.eclipse.apoapsis.ortserver.dao.tables.shared.IdentifiersTable
 import org.eclipse.apoapsis.ortserver.model.runs.Identifier
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.HealthMetric
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.HealthSummary
 
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
@@ -44,10 +46,27 @@ class AdvisorRunIdentifierDao(id: EntityID<Long>) : LongEntity(id) {
 
     val advisorResults by AdvisorResultDao referrersOn AdvisorResultsTable.advisorRunIdentifierId
 
-    fun mapToModel(runIssues: List<Issue>): Pair<Identifier, List<AdvisorResult>> {
+    /**
+     * Map this entity to the model. [runHealthMetrics] and [runHealthSummaries] hold the health data of all results
+     * of the run by the ID of the advisor result, so that it is loaded once for the whole run.
+     */
+    fun mapToModel(
+        runIssues: List<Issue>,
+        runHealthMetrics: Map<Long, List<HealthMetric>>,
+        runHealthSummaries: Map<Long, HealthSummary>
+    ): Pair<Identifier, List<AdvisorResult>> {
         val modelIdentifier = identifier.mapToModel()
         val identifierIssues = runIssues.filter { it.identifier == modelIdentifier }
 
-        return Pair(modelIdentifier, advisorResults.map { it.mapToModel(identifierIssues) })
+        return Pair(
+            modelIdentifier,
+            advisorResults.map {
+                it.mapToModel(
+                    identifierIssues,
+                    runHealthMetrics[it.id.value].orEmpty(),
+                    runHealthSummaries[it.id.value]
+                )
+            }
+        )
     }
 }

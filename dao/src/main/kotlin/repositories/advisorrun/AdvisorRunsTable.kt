@@ -60,6 +60,8 @@ class AdvisorRunDao(id: EntityID<Long>) : LongEntity(id) {
     fun mapToModel(): AdvisorRun {
         val runIssues = advisorJob.ortRun.issues.filter { it.worker == ISSUE_WORKER_TYPE }
             .map(OrtRunIssueDao::mapToModel)
+        val runHealthMetrics = HealthMetricsTable.getByAdvisorRunId(id.value)
+        val runHealthSummaries = HealthSummariesTable.getByAdvisorRunId(id.value)
 
         return AdvisorRun(
             id = id.value,
@@ -69,7 +71,7 @@ class AdvisorRunDao(id: EntityID<Long>) : LongEntity(id) {
             environment = environment.mapToModel(),
             config = advisorConfiguration.mapToModel(),
             providerIssues = runIssues.filterTo(mutableSetOf()) { it.identifier == null },
-            results = results.associate { it.mapToModel(runIssues) }
+            results = results.associate { it.mapToModel(runIssues, runHealthMetrics, runHealthSummaries) }
         )
     }
 }

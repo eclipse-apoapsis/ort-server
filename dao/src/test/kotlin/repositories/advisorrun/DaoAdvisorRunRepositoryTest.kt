@@ -24,10 +24,12 @@ import io.kotest.matchers.nulls.beNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
+import kotlin.random.Random
 import kotlin.time.Clock
 
 import org.eclipse.apoapsis.ortserver.dao.test.DatabaseTestExtension
 import org.eclipse.apoapsis.ortserver.dao.test.Fixtures
+import org.eclipse.apoapsis.ortserver.dao.transaction
 import org.eclipse.apoapsis.ortserver.dao.utils.toDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.PluginConfig
 import org.eclipse.apoapsis.ortserver.model.Severity
@@ -37,9 +39,14 @@ import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.Criticality
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.HealthMetric
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.HealthSummary
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.utils.test.Integration
+
+import org.jetbrains.exposed.v1.jdbc.selectAll
 
 class DaoAdvisorRunRepositoryTest : WordSpec({
     tags(Integration)
@@ -81,6 +88,35 @@ class DaoAdvisorRunRepositoryTest : WordSpec({
             createdAdvisorRun1 shouldBe advisorRun.copy(id = createdAdvisorRun1.id, advisorJobId = advisorJobId)
             createdAdvisorRun2 shouldBe advisorRun.copy(id = createdAdvisorRun2.id, advisorJobId = advisorJob2.id)
             createdAdvisorRun3 shouldBe advisorRun.copy(id = createdAdvisorRun3.id, advisorJobId = advisorJob3.id)
+        }
+
+        "store health metrics and summaries" {
+            val createdAdvisorRun = advisorRunRepository.create(advisorJobId, healthAdvisorRun)
+
+            advisorRunRepository.get(createdAdvisorRun.id) shouldBe
+                    healthAdvisorRun.copy(id = createdAdvisorRun.id, advisorJobId = advisorJobId)
+        }
+
+        "store the definition of a metric only once" {
+            val advisorJob2 = fixtures.createAdvisorJob(fixtures.createOrtRun(fixtures.repository.id).id)
+            val otherValues = healthAdvisorRun.copy(
+                results = mapOf(
+                    identifier to listOf(
+                        scorecardResult.copy(
+                            healthMetrics = listOf(
+                                codeReviewMetric.copy(value = 3.0, criticality = Criticality.CRITICAL),
+                                elephantFactorMetric.copy(value = 1.0, referenceValue = 2.0)
+                            ),
+                            healthSummary = null
+                        )
+                    )
+                )
+            )
+
+            advisorRunRepository.create(advisorJobId, healthAdvisorRun)
+            advisorRunRepository.create(advisorJob2.id, otherValues)
+
+            dbExtension.db.transaction { HealthMetricDefinitionsTable.selectAll().count() } shouldBe 4
         }
     }
 
@@ -232,6 +268,77 @@ private val advisorRun = AdvisorRun(
     config = advisorConfiguration,
     providerIssues = setOf(providerIssue),
     results = mapOf(identifier to listOf(advisorResult), otherIdentifier to listOf(otherAdvisorResult))
+)
+
+private val codeReviewMetric = HealthMetric(
+    name = "Code-Review",
+    documentation = "Determines if the project requires human code review before pull requests are merged.",
+    documentationLink = "https://example.org/checks#code-review",
+    minValue = 0.0,
+    maxValue = 10.0,
+    higherIsBetter = true,
+    value = 8.0,
+    criticality = Criticality.LOW,
+    reason = "Found 8/10 approved changesets.",
+    details = listOf("Info: first detail", "Warn: second detail")
+)
+
+private val packagingMetric = HealthMetric(
+    name = "Packaging",
+    // Longer than PostgreSQL allows for an index entry, which the hash in the unique index of the definitions avoids.
+    documentation = Random(0).nextBytes(16384).toHexString(),
+    minValue = 0.0,
+    maxValue = 10.0,
+    higherIsBetter = true,
+    value = null,
+    reason = "packaging workflow not detected"
+)
+
+private val elephantFactorMetric = HealthMetric(
+    name = "Elephant Factor",
+    minValue = 0.0,
+    higherIsBetter = true,
+    value = 3.0,
+    referenceValue = 2.5,
+    criticality = Criticality.LOW
+)
+
+private val scorecardResult = AdvisorResult(
+    advisorName = "Scorecard",
+    startTime = Clock.System.now().toDatabasePrecision(),
+    endTime = Clock.System.now().toDatabasePrecision(),
+    issues = emptyList(),
+    vulnerabilities = emptyList(),
+    healthMetrics = listOf(codeReviewMetric, packagingMetric),
+    healthSummary = HealthSummary(
+        overallScore = HealthMetric(
+            name = "Aggregate-Score",
+            minValue = 0.0,
+            maxValue = 10.0,
+            higherIsBetter = true,
+            value = 4.2,
+            criticality = Criticality.HIGH
+        ),
+        analyzedAt = Clock.System.now().toDatabasePrecision(),
+        analyzedRevision = "479dbae",
+        toolVersion = "v5.7.0"
+    )
+)
+
+private val healthAdvisorRun = advisorRun.copy(
+    results = mapOf(
+        identifier to listOf(
+            scorecardResult,
+            scorecardResult.copy(
+                advisorName = "Crossd",
+                healthMetrics = listOf(elephantFactorMetric),
+                healthSummary = null
+            )
+        ),
+        otherIdentifier to listOf(
+            scorecardResult.copy(healthMetrics = listOf(codeReviewMetric), healthSummary = HealthSummary())
+        )
+    )
 )
 
 /** Return a copy of this [AdvisorResult] with the issues converted to plain issues. */
