@@ -290,7 +290,9 @@ describe('infrastructure services pages', () => {
         name: 'Infrastructure Services',
       });
       await waitFor(() =>
-        expect(panel).toHaveTextContent('the service with the longest URL')
+        expect(panel).toHaveTextContent(
+          'the service with the longest matching URL'
+        )
       );
       await waitFor(() =>
         expect(
