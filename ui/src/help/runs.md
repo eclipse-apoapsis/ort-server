@@ -1,117 +1,103 @@
 # Runs
 
-A run analyzes one revision of a repository with the OSS Review Toolkit (ORT). It finds the
-dependencies of the projects in the repository, looks up their vulnerabilities, scans their source
-code for licenses and copyrights, checks the results against the rules of your organization, and
-produces reports.
+A run analyzes one revision of a repository with the OSS Review Toolkit (ORT). It identifies the
+dependencies of the projects in the repository, looks up known vulnerabilities, scans the source
+code for licenses and copyrights, checks the results against the policies of your organization,
+and creates reports.
 
-Most settings of a run can stay as they are: the defaults come from the configuration of this ORT
-Server instance, and the repository can add its own configuration in `.ort.yml` and
-`.ort.env.yml`. Set something here only when this run needs to differ.
+In most cases, you can keep the default settings. The defaults are provided by the administrators
+of this ORT Server instance, and a repository can add its own configuration in its `.ort.yml` and
+`.ort.env.yml` files. Change a setting only if this run needs to differ.
 
 [Read more about the jobs of a run in the ORT documentation](https://oss-review-toolkit.org/ort/docs/getting-started/tutorial)
 
 ## Configuration Context {#job-config-context}
 
-The version of the server configuration to use for this run. ORT Server reads its configuration
-files, such as evaluator rules, license classifications and report templates, from a
-configuration provider, and the context tells the provider which version to read. What the context
-can be depends on the provider that the administrators of this instance chose: the provider that
-reads from a Git repository accepts a branch, a tag or a commit, while the provider that reads
-through the GitHub API accepts only a branch. A run with a context that the provider cannot find
-fails.
+The version of the server configuration to use for this run, such as a branch name. The server
+configuration includes, for example, the evaluator rules, license classifications and report
+templates. Which values are valid depends on how the administrators have set up this instance; ask
+them if you are unsure. If the specified version cannot be found, the run fails.
 
-The context is resolved once when the run starts, so all jobs of the run see the same
-configuration even if it changes while the run is in progress.
-
-Leave it empty to use the default configuration. Administrators use the context to try out a
-change to the configuration, for example a new rule, on a branch before making it the default.
+Leave this field empty to use the default configuration. A configuration context is mainly used by
+administrators to test configuration changes, such as a new rule, before making them the default.
 
 ## Environment Configuration Path {#environment-config-path}
 
-The path in the repository of the environment configuration file, if it is not at the default
-location `.ort.env.yml` in the repository root.
+The path to the environment configuration file in the repository. Specify it only if the file is
+not located at the default path `.ort.env.yml` in the repository root.
 
-The environment configuration declares what the build of the repository needs: the infrastructure
-services, such as private artifact repositories, with the credentials to access them, the
-environment variables for the build, and the settings that package managers need to find their
-repositories.
+The environment configuration describes what is required to build the repository, such as the
+infrastructure services and credentials for private artifact repositories, environment variables,
+and package manager settings.
 
 ## Rule Set {#rule-set}
 
-The name of the rule set to check the results of this run against. A rule set bundles the files
-that the Evaluator, and partly the Reporter and the Notifier, use: the evaluator rules, the license
-classifications, the resolutions, and the list of copyright statements to ignore.
+The name of the rule set to check the results of this run against. A rule set contains the
+evaluator rules, license classifications, resolutions and copyright statements to ignore.
 
-The administrators of this ORT Server instance define the rule sets. Leave the field empty to use
-the default rule set. A run that names a rule set that does not exist fails, and its error message
-lists the available names.
+Rule sets are defined by the administrators of this ORT Server instance. Leave this field empty to
+use the default rule set. If you specify a rule set that does not exist, the run fails, and the
+error message lists the available rule sets.
 
 ## Configuration Parameters {#parameters}
 
-Key-value pairs passed to the validation script of this ORT Server instance. The script runs
-before the Analyzer and turns the parameters into the settings of the jobs, so that you can
-choose, for example, an application category instead of a technical rule set, or a scanner by a
-short name instead of its address and credentials.
+Key-value pairs that adjust the settings of the run. Parameters provide a simpler way to configure
+a run, for example by selecting an application category instead of a specific rule set.
 
-Which parameters exist and what they do depends entirely on the script, so ask the
-administrators of this instance.
+The available parameters are specific to this ORT Server instance. Ask your administrators which
+parameters you can use.
 
 ## ORT Labels {#labels}
 
-Key-value pairs stored as labels in the ORT result of this run. ORT does not interpret labels
-itself; custom configuration does, most often the evaluator rules. A rule could, for example,
-apply stricter checks to runs labelled `distribution=external`.
+Key-value pairs that are stored with the results of this run. Labels have no effect on their own,
+but rules can use them. For example, a rule could apply stricter checks to runs with the label
+`distribution=external`.
 
 ## Includes and Excludes {#includes-excludes}
 
-Patterns that mark parts of the analyzed projects as included or excluded, in addition to the
-includes and excludes in the repository's `.ort.yml`.
+Patterns that mark parts of the analyzed projects as included or excluded, in addition to those in
+the `.ort.yml` file of the repository.
 
-- **Paths** match files and directories, relative to the repository root, such as `docs/**` or
-  `**/test/**`. Excluding a path excludes the projects defined in it.
-- **Scopes** match the dependency scopes of the package managers with a regular expression, such
-  as `test.*` for test dependencies.
+- **Paths** match files and directories relative to the repository root, such as `docs/**` or
+  `**/test/**`. Excluding a path also excludes the projects defined in it.
+- **Scopes** match dependency scopes using a regular expression, such as `test.*` for test
+  dependencies.
 
-Excluded parts are marked as excluded in the results: reports show them separately, evaluator
-rules usually ignore them, and the jobs can skip them with their Skip excluded settings. An
-include turns this around: once there is an include of a kind, everything of that kind that it
-does not match counts as excluded. Each entry needs a reason, which reports show next to the
-excluded parts.
+Excluded parts are listed separately in reports and are usually ignored by rules. Jobs can also be
+configured to skip them. If you add an include, everything of the same kind that the include does
+not match is treated as excluded. Each entry requires a reason, which is shown in the reports.
 
 ## Jobs {#job-configs}
 
-A run consists of jobs, each done by its own worker. The Analyzer always runs; switch the others
-on or off and configure them below. The Advisor and the Scanner start when the Analyzer is done,
-the Evaluator works on their results, and the Reporter and the Notifier come last. The Reporter
-also runs after a failed job, so that you get reports about what went wrong.
+A run consists of several jobs. The Analyzer always runs; you can enable, disable and configure
+the other jobs below. The Advisor and the Scanner start when the Analyzer has finished, the
+Evaluator then checks their results, and the Reporter and the Notifier run last. The Reporter also
+runs if a previous job fails, so that you receive reports about the problem.
 
 ### Analyzer {#analyzer}
 
-Finds the projects in the repository and resolves their dependencies with the package managers of
-the projects, such as Maven, npm or Gradle. Its result is the dependency tree of every project,
-which all other jobs build on.
+Identifies the projects in the repository and determines their dependencies using package managers
+such as Maven, npm or Gradle. All other jobs build on its results.
 
 ### Advisor {#advisor}
 
-Looks up known vulnerabilities and defects of the dependencies in services such as OSV or
+Looks up known vulnerabilities and defects of the dependencies in sources such as OSV or
 VulnerableCode.
 
 ### Scanner {#scanner}
 
-Downloads the source code of the projects and packages and scans it for licenses and copyright
-statements. Results of earlier scans of the same source code are reused.
+Scans the source code of the projects and their dependencies for licenses and copyright
+statements. Results from earlier scans of the same source code are reused.
 
 ### Evaluator {#evaluator}
 
-Checks the results against the rules of the selected rule set, and reports rule violations, for
-example a dependency under a license that your organization does not allow.
+Checks the results against the rules of the selected rule set and reports rule violations, for
+example a dependency whose license your organization does not allow.
 
 ### Reporter {#reporter}
 
-Creates the reports of the run in the selected formats, such as an SBOM or a web application
-report.
+Creates reports in the selected formats, such as an SBOM or a web application report.
 
 ### Notifier {#notifier}
 
-Sends a notification about the finished run, such as an email to the recipient addresses.
+Sends a notification when the run has finished, for example an email to the specified recipients.
