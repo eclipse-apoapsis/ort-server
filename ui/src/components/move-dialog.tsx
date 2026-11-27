@@ -134,9 +134,11 @@ export const MoveDialog = ({
               setIsPending(true);
               try {
                 await onMove();
-              } finally {
+              } catch (error) {
                 setIsPending(false);
+                throw error;
               }
+              setIsPending(false);
               setOpen(false);
             }}
             className='bg-red-500'
