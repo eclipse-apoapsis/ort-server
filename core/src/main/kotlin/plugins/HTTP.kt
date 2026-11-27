@@ -81,6 +81,7 @@ fun Application.configureHTTP() {
         allowHeader(HttpHeaders.Authorization)
         allowHeader(HttpHeaders.ContentType)
         allowHeader(HttpHeaders.Prefer)
+        exposeHeader(HttpHeaders.ContentDisposition)
         exposeHeader(HttpHeaders.RetryAfter)
         allowMethod(HttpMethod.Delete)
         allowMethod(HttpMethod.Patch)
