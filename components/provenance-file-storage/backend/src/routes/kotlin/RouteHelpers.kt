@@ -21,6 +21,7 @@ package org.eclipse.apoapsis.ortserver.components.provenancefilestorage.routes
 
 import io.github.smiley4.ktoropenapi.config.RequestConfig
 
+import io.ktor.http.ContentType
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.plugins.ParameterConversionException
 
@@ -48,6 +49,20 @@ internal val ProvenanceFileType.displayName: String
     get() = when (this) {
         ProvenanceFileType.FILE_ARCHIVE -> "file archive"
         ProvenanceFileType.FILE_LIST -> "file list"
+    }
+
+/** The content type of downloaded files of this type. */
+internal val ProvenanceFileType.contentType: ContentType
+    get() = when (this) {
+        ProvenanceFileType.FILE_ARCHIVE -> ContentType.Application.Zip
+        ProvenanceFileType.FILE_LIST -> ContentType.Application.Yaml
+    }
+
+/** The extension of downloaded files of this type. */
+internal val ProvenanceFileType.fileExtension: String
+    get() = when (this) {
+        ProvenanceFileType.FILE_ARCHIVE -> "zip"
+        ProvenanceFileType.FILE_LIST -> "yml"
     }
 
 /** Document the query parameter to request a refresh of the cached listing. */

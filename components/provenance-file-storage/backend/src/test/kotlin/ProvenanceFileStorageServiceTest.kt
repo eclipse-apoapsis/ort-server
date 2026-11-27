@@ -25,6 +25,8 @@ import io.kotest.matchers.collections.beEmpty
 import io.kotest.matchers.collections.containExactly
 import io.kotest.matchers.collections.shouldBeSingleton
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.nulls.beNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
@@ -35,6 +37,7 @@ import org.eclipse.apoapsis.ortserver.model.util.ListQueryParameters
 import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.storage.Key
+import org.eclipse.apoapsis.ortserver.storage.Storage.Companion.dataString
 import org.eclipse.apoapsis.ortserver.storage.StorageEntryInfo
 import org.eclipse.apoapsis.ortserver.storage.StorageException
 
@@ -268,6 +271,31 @@ class ProvenanceFileStorageServiceTest : WordSpec({
             statistics.snapshotTime shouldBe now
             statistics.totalCount shouldBe 2
             statistics.totalSizeInBytes shouldBe 400
+        }
+    }
+
+    "read" should {
+        "return the contents of an existing file" {
+            val (archiveStorage, archiveProvider) = createFakeStorage(repoA)
+            val (listStorage, _) = createFakeStorage()
+            archiveProvider.contents[repoA.key] = "archive data".toByteArray()
+            val service = ProvenanceFileStorageService(archiveStorage, listStorage)
+
+            service.read(ProvenanceFileType.FILE_ARCHIVE, repoA.key).shouldNotBeNull().use { entry ->
+                entry.dataString shouldBe "archive data"
+            }
+        }
+
+        "return null for a non-existing file" {
+            val service = createService(repoA)
+
+            service.read(ProvenanceFileType.FILE_ARCHIVE, Key("nonExisting")) should beNull()
+        }
+
+        "return null for a file of another type" {
+            val service = createService(repoA)
+
+            service.read(ProvenanceFileType.FILE_LIST, repoA.key) should beNull()
         }
     }
 

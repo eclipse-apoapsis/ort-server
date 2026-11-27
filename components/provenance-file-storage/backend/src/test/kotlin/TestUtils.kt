@@ -19,6 +19,7 @@
 
 package org.eclipse.apoapsis.ortserver.components.provenancefilestorage
 
+import java.io.ByteArrayInputStream
 import java.io.InputStream
 
 import kotlin.time.Clock
@@ -34,12 +35,15 @@ import org.eclipse.apoapsis.ortserver.storage.StorageEntryInfo
 import org.eclipse.apoapsis.ortserver.storage.StorageProvider
 
 /**
- * A simple [StorageProvider] implementation for tests that only manages the metadata of entries. It records how often
- * the entries have been listed.
+ * A simple [StorageProvider] implementation for tests that manages the metadata of entries and optionally their
+ * contents. It records how often the entries have been listed.
  */
 internal class FakeStorageProvider(entries: Collection<StorageEntryInfo> = emptyList()) : StorageProvider {
     /** The entries of this storage, mapped by their keys. */
     val entries = entries.associateByTo(mutableMapOf()) { it.key }
+
+    /** The contents of entries, mapped by their keys. Entries without contents are read as empty data. */
+    val contents = mutableMapOf<Key, ByteArray>()
 
     /** The number of times the entries of this storage have been listed. */
     var listCount = 0
@@ -48,16 +52,22 @@ internal class FakeStorageProvider(entries: Collection<StorageEntryInfo> = empty
     /** An optional exception to throw when deleting an entry, to simulate a failing storage. */
     var deleteFailure: Exception? = null
 
-    override suspend fun read(key: Key): StorageEntry = throw UnsupportedOperationException()
+    override suspend fun read(key: Key): StorageEntry {
+        val entry = entries[key] ?: throw NoSuchElementException("No entry with key '${key.key}'.")
+        val data = contents[key] ?: ByteArray(0)
+        return StorageEntry.create(ByteArrayInputStream(data), entry.contentType, data.size.toLong())
+    }
 
     override suspend fun write(key: Key, data: InputStream, length: Long, contentType: String?) {
         entries[key] = StorageEntryInfo(key, length, contentType, lastModified = null)
+        contents[key] = data.readBytes()
     }
 
     override suspend fun contains(key: Key): Boolean = key in entries
 
     override suspend fun delete(key: Key): Boolean {
         deleteFailure?.let { throw it }
+        contents.remove(key)
         return entries.remove(key) != null
     }
 
