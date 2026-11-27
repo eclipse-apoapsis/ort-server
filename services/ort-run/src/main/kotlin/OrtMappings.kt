@@ -53,6 +53,9 @@ import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorDetails
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.Criticality
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.HealthMetric
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.HealthSummary
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
@@ -110,10 +113,13 @@ import org.ossreviewtoolkit.model.AdvisorRun as OrtAdvisorRun
 import org.ossreviewtoolkit.model.AnalyzerRun as OrtAnalyzerRun
 import org.ossreviewtoolkit.model.ArtifactProvenance as OrtArtifactProvenance
 import org.ossreviewtoolkit.model.CopyrightFinding as OrtCopyrightFinding
+import org.ossreviewtoolkit.model.Criticality as OrtCriticality
 import org.ossreviewtoolkit.model.DependencyGraph as OrtDependencyGraph
 import org.ossreviewtoolkit.model.DependencyGraphEdge as OrtDependencyGraphEdge
 import org.ossreviewtoolkit.model.DependencyGraphNode as OrtDependencyGraphNode
 import org.ossreviewtoolkit.model.EvaluatorRun as OrtEvaluatorRun
+import org.ossreviewtoolkit.model.HealthMetric as OrtHealthMetric
+import org.ossreviewtoolkit.model.HealthSummary as OrtHealthSummary
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Issue as OrtIssue
 import org.ossreviewtoolkit.model.LicenseFinding as OrtLicenseFinding
@@ -190,7 +196,9 @@ fun OrtAdvisorResult.mapToModel() =
         startTime = summary.startTime.toKotlinInstant(),
         endTime = summary.endTime.toKotlinInstant(),
         issues = summary.issues.map { it.mapToModel() },
-        vulnerabilities = vulnerabilities.map { it.mapToModel() }
+        vulnerabilities = vulnerabilities.map { it.mapToModel() },
+        healthMetrics = healthMetrics.map { it.mapToModel() },
+        healthSummary = healthSummary?.mapToModel()
     )
 
 fun OrtAdvisorRun.mapToModel(advisorJobId: Long) =
@@ -234,6 +242,13 @@ fun OrtAnalyzerRun.mapToModel(analyzerJobId: Long) =
     )
 
 fun OrtCopyrightFinding.mapToModel() = CopyrightFinding(statement = statement, location = location.mapToModel())
+
+fun OrtCriticality.mapToModel() = when (this) {
+    OrtCriticality.LOW -> Criticality.LOW
+    OrtCriticality.MEDIUM -> Criticality.MEDIUM
+    OrtCriticality.HIGH -> Criticality.HIGH
+    OrtCriticality.CRITICAL -> Criticality.CRITICAL
+}
 
 fun OrtCurations.mapToModel() = Curations(
     packages = packages.map(OrtPackageCuration::mapToModel),
@@ -286,6 +301,29 @@ fun OrtExcludes.mapToModel() = Excludes(
     paths = paths.map(OrtPathExclude::mapToModel),
     scopes = scopes.map(OrtScopeExclude::mapToModel)
 )
+
+fun OrtHealthMetric.mapToModel() =
+    HealthMetric(
+        name = name,
+        documentation = documentation,
+        documentationLink = documentationLink?.toString(),
+        minValue = minValue,
+        maxValue = maxValue,
+        higherIsBetter = higherIsBetter,
+        value = value,
+        referenceValue = referenceValue,
+        criticality = criticality?.mapToModel(),
+        reason = reason,
+        details = details
+    )
+
+fun OrtHealthSummary.mapToModel() =
+    HealthSummary(
+        overallScore = overallScore?.mapToModel(),
+        analyzedAt = analyzedAt?.toKotlinInstant(),
+        analyzedRevision = analyzedRevision,
+        toolVersion = toolVersion
+    )
 
 fun OrtIdentifier.mapToModel() = Identifier(type = type, namespace = namespace, name = name, version = version)
 
