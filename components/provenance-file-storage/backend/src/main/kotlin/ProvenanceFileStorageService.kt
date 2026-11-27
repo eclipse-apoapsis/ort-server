@@ -99,7 +99,7 @@ class ProvenanceFileStorageService(
      * the file does not exist. The caller is responsible for closing the returned entry.
      */
     suspend fun read(type: ProvenanceFileType, key: Key): StorageEntry? =
-        storageFor(type).takeIf { it.containsKey(key) }?.read(key)
+        storageFor(type).takeIf { it.contains(key) }?.read(key)
 
     /**
      * Delete the file of the given [type] that is stored under the given [key]. Return *true* if the file existed and
