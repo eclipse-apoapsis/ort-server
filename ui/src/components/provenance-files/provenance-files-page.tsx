@@ -24,7 +24,7 @@ import {
   useSuspenseQuery,
 } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 
 import { ProvenanceFileStatistics } from '@/api';
 import {
@@ -97,11 +97,8 @@ export const ProvenanceFilesPage = <
   });
 
   // A failed deletion is reported by onError, so the error is not passed on to the delete dialog, where it would be
-  // unhandled. The callback has to be stable, as the columns of the table are recreated when it changes.
-  const onDelete = useCallback(
-    (id: string) => deleteFile(id).catch(() => undefined),
-    [deleteFile]
-  );
+  // unhandled.
+  const onDelete = (id: string) => deleteFile(id).catch(() => undefined);
 
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -119,9 +116,10 @@ export const ProvenanceFilesPage = <
       await queryClient.invalidateQueries({ queryKey: config.filesQueryKey });
     } catch (error) {
       toastError(`Refreshing the ${thingName}s failed.`, error);
-    } finally {
-      setIsRefreshing(false);
     }
+
+    // React Compiler does not support `finally`, and would skip the whole component.
+    setIsRefreshing(false);
   };
 
   const filterBy = (filter: string | undefined) =>
