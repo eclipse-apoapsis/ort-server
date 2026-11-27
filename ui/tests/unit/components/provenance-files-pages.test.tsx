@@ -20,7 +20,7 @@
 // @vitest-environment jsdom
 
 import { screen, waitFor, within } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ProvenanceFile, ProvenanceFileStatistics } from '@/api';
 import { Route as FileArchivesRoute } from '@/routes/admin/file-archives';
@@ -32,6 +32,8 @@ import { pageOf } from '../fixtures/table';
 const mocks = vi.hoisted(() => ({
   getFileArchives: vi.fn(),
   getFileLists: vi.fn(),
+  downloadFileArchive: vi.fn(),
+  downloadFileList: vi.fn(),
   deleteFileArchive: vi.fn(),
   deleteFileList: vi.fn(),
   getFileArchiveStatistics: vi.fn(),
@@ -44,6 +46,8 @@ vi.mock('@/api/sdk.gen', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/api/sdk.gen')>()),
   getFileArchives: mocks.getFileArchives,
   getFileLists: mocks.getFileLists,
+  downloadFileArchive: mocks.downloadFileArchive,
+  downloadFileList: mocks.downloadFileList,
   deleteFileArchive: mocks.deleteFileArchive,
   deleteFileList: mocks.deleteFileList,
   getFileArchiveStatistics: mocks.getFileArchiveStatistics,
@@ -61,6 +65,8 @@ const pages = [
     path: '/admin/file-archives/',
     route: FileArchivesRoute,
     getFiles: mocks.getFileArchives,
+    downloadFile: mocks.downloadFileArchive,
+    defaultFileName: 'file-archive.zip',
     deleteFile: mocks.deleteFileArchive,
     getStatistics: mocks.getFileArchiveStatistics,
   },
@@ -69,6 +75,8 @@ const pages = [
     path: '/admin/file-lists/',
     route: FileListsRoute,
     getFiles: mocks.getFileLists,
+    downloadFile: mocks.downloadFileList,
+    defaultFileName: 'file-list.yml',
     deleteFile: mocks.deleteFileList,
     getStatistics: mocks.getFileListStatistics,
   },
@@ -128,12 +136,71 @@ const deleteFile = async (user: User, url: string) => {
   await user.click(within(dialog).getByRole('button', { name: 'Delete' }));
 };
 
+/** Click the download button of the file with the given URL. */
+const downloadFile = async (user: User, url: string) => {
+  const row = (await screen.findByText(url)).closest('tr')!;
+  await user.click(within(row).getByRole('button', { name: 'Download' }));
+};
+
 describe.each(pages)('the $name page', (page) => {
+  /** The names of the files that were saved, in the order of the downloads. */
+  let savedFileNames: string[];
+
   beforeEach(() => {
+    savedFileNames = [];
+    vi.spyOn(window.URL, 'createObjectURL').mockReturnValue('blob:file');
+    vi.spyOn(window.URL, 'revokeObjectURL').mockReturnValue(undefined);
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+      this: HTMLAnchorElement
+    ) {
+      savedFileNames.push(this.download);
+    });
+
     vi.clearAllMocks();
     page.getFiles.mockResolvedValue(pageOf(files, { limit: 20 }));
     page.deleteFile.mockResolvedValue({ data: undefined });
     page.getStatistics.mockResolvedValue({ data: createStatistics(2) });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('saves the downloaded file with the name suggested by the server', async () => {
+    const data = new Blob(['content']);
+    page.downloadFile.mockResolvedValue({
+      data,
+      headers: { 'content-disposition': 'attachment; filename=repo-2-abc.zip' },
+    });
+    const { user } = renderPage(page);
+
+    await downloadFile(user, 'https://example.org/repo-2.git');
+
+    expect(page.downloadFile).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({ path: { id: 'file-2' }, responseType: 'blob' })
+    );
+    await waitFor(() => expect(savedFileNames).toEqual(['repo-2-abc.zip']));
+    expect(window.URL.createObjectURL).toHaveBeenCalledExactlyOnceWith(data);
+    expect(mocks.toastError).not.toHaveBeenCalled();
+  });
+
+  it('saves the downloaded file with a default name if the server suggests none', async () => {
+    page.downloadFile.mockResolvedValue({ data: new Blob([]), headers: {} });
+    const { user } = renderPage(page);
+
+    await downloadFile(user, 'https://example.org/repo-1.git');
+
+    await waitFor(() => expect(savedFileNames).toEqual([page.defaultFileName]));
+  });
+
+  it('shows an error if the download fails', async () => {
+    page.downloadFile.mockRejectedValue(new Error('Not found.'));
+    const { user } = renderPage(page);
+
+    await downloadFile(user, 'https://example.org/repo-1.git');
+
+    await waitFor(() => expect(mocks.toastError).toHaveBeenCalledOnce());
+    expect(savedFileNames).toEqual([]);
   });
 
   it('deletes the selected file after confirmation and fetches the files again', async () => {

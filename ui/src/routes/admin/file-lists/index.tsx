@@ -25,7 +25,11 @@ import {
   getFileListStatisticsOptions,
   getFileListStatisticsQueryKey,
 } from '@/api/@tanstack/react-query.gen';
-import { deleteFileList, getFileListStatistics } from '@/api/sdk.gen';
+import {
+  deleteFileList,
+  downloadFileList,
+  getFileListStatistics,
+} from '@/api/sdk.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import {
   loadProvenanceFiles,
@@ -46,6 +50,13 @@ const fileListsConfig: ProvenanceFilesConfig<
   to: '/admin/file-lists',
   filesQueryOptions: (query) => getFileListsOptions({ query }),
   filesQueryKey: getFileListsQueryKey(),
+  defaultFileName: 'file-list.yml',
+  downloadFile: (id) =>
+    downloadFileList({
+      path: { id },
+      responseType: 'blob',
+      throwOnError: true,
+    }),
   deleteFile: (id) => deleteFileList({ path: { id }, throwOnError: true }),
   statisticsQueryOptions: () => getFileListStatisticsOptions(),
   refreshStatistics: () =>

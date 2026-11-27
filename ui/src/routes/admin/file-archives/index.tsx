@@ -25,7 +25,11 @@ import {
   getFileArchiveStatisticsOptions,
   getFileArchiveStatisticsQueryKey,
 } from '@/api/@tanstack/react-query.gen';
-import { deleteFileArchive, getFileArchiveStatistics } from '@/api/sdk.gen';
+import {
+  deleteFileArchive,
+  downloadFileArchive,
+  getFileArchiveStatistics,
+} from '@/api/sdk.gen';
 import { LoadingIndicator } from '@/components/loading-indicator';
 import {
   loadProvenanceFiles,
@@ -46,6 +50,13 @@ const fileArchivesConfig: ProvenanceFilesConfig<
   to: '/admin/file-archives',
   filesQueryOptions: (query) => getFileArchivesOptions({ query }),
   filesQueryKey: getFileArchivesQueryKey(),
+  defaultFileName: 'file-archive.zip',
+  downloadFile: (id) =>
+    downloadFileArchive({
+      path: { id },
+      responseType: 'blob',
+      throwOnError: true,
+    }),
   deleteFile: (id) => deleteFileArchive({ path: { id }, throwOnError: true }),
   statisticsQueryOptions: () => getFileArchiveStatisticsOptions(),
   refreshStatistics: () =>

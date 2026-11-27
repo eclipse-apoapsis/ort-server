@@ -26,3 +26,32 @@ export const provenanceFileKindLabels: Record<ProvenanceFile['kind'], string> =
     VCS: 'VCS',
     UNKNOWN: 'Unknown',
   };
+
+/**
+ * Return the file name from the given value of a Content-Disposition header, or undefined if it is not a string or
+ * does not contain a file name.
+ */
+export const fileNameFromContentDisposition = (
+  contentDisposition: unknown
+): string | undefined => {
+  if (typeof contentDisposition !== 'string') return undefined;
+
+  const fileName = contentDisposition
+    .split(';')
+    .map((part) => part.trim())
+    .find((part) => part.startsWith('filename='))
+    ?.substring('filename='.length)
+    .replace(/^"(.*)"$/, '$1');
+
+  return fileName || undefined;
+};
+
+/** Let the browser save the given data as a file with the given name. */
+export const saveFile = (data: Blob, fileName: string) => {
+  const url = window.URL.createObjectURL(data);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.click();
+  window.URL.revokeObjectURL(url);
+};
