@@ -20,7 +20,10 @@
 package org.eclipse.apoapsis.ortserver.core.plugins
 
 import io.kotest.core.spec.style.WordSpec
+import io.kotest.matchers.collections.containExactlyInAnyOrder
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
 
 import io.ktor.client.call.body
@@ -260,7 +263,7 @@ class HTTPTest : WordSpec({
             }
         }
 
-        "expose the Retry-After header to cross-origin requests" {
+        "expose the Content-Disposition and Retry-After headers to cross-origin requests" {
             testApplication {
                 configureHttpTestApplication(allowedHosts = "ui.example")
 
@@ -269,7 +272,9 @@ class HTTPTest : WordSpec({
                 }
 
                 response.status shouldBe HttpStatusCode.OK
-                response.headers[HttpHeaders.AccessControlExposeHeaders] shouldBe HttpHeaders.RetryAfter
+                response.headers[HttpHeaders.AccessControlExposeHeaders].shouldNotBeNull()
+                    .split(',').map(String::trim) should
+                        containExactlyInAnyOrder(HttpHeaders.ContentDisposition, HttpHeaders.RetryAfter)
             }
         }
 
