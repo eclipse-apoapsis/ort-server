@@ -12,7 +12,10 @@ The build runs [React Compiler](https://react.dev/learn/react-compiler) through 
 It memoizes components and hooks, so new code usually does not need `useMemo`, `useCallback` or `memo()`.
 Keep a manual `useMemo` or `useCallback` where a value must keep its identity while the compiler would see a changed input, such as a new object with the same contents, and say why in a comment.
 
-- The compiler silently skips a component it cannot handle, and `pnpm lint` does not report every reason for a skip; unsupported syntax such as `try … finally` is not reported.
+- The compiler silently skips a component it cannot handle.
+  `pnpm lint` reports most unsupported syntax, such as `try … finally` or `throw` inside `try`, through the `react-hooks/todo` rule.
+  The lint rule uses a newer compiler than the build, though, so some code is still only rejected by the build's compiler, such as conditionals, `??` and optional chaining inside a `try` block.
+  Move such code out of the `try` block, or use `promise.catch(...)` instead of `try`/`catch`.
   A skipped component also hides its other compiler lint findings.
 - The compiler reuses a value computed from an object for as long as the object stays the same.
   A component that reads state through an object whose identity does not change when the state does, such as TanStack Table rows and columns, would show outdated content.

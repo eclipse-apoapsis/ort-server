@@ -37,7 +37,7 @@ export default defineConfig([
   },
   js.configs.recommended,
   ...tsEslint.configs['flat/recommended'],
-  reactHooks.configs.flat.recommended,
+  reactHooks.configs.flat['recommended-latest'],
   {
     files: ['**/*.ts', '**/*.tsx'],
     languageOptions: {
@@ -89,6 +89,9 @@ export default defineConfig([
       // value that is never nullish, so that the checks that do matter stand
       // out.
       '@typescript-eslint/no-unnecessary-condition': 'error',
+      // Report code that React Compiler does not support yet, such as
+      // `try … finally`. The compiler would silently skip the whole component.
+      'react-hooks/todo': 'error',
     },
   },
 ]);
