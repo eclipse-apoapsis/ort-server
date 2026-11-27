@@ -138,7 +138,7 @@ class DatabaseStorageTest : WordSpec({
         "return false for a non existing entry" {
             val storage = createStorage(dbExtension.db)
 
-            storage.containsKey(Key("nonExistingKey")) shouldBe false
+            storage.contains(Key("nonExistingKey")) shouldBe false
         }
 
         "return true for an existing entry" {
@@ -147,7 +147,7 @@ class DatabaseStorageTest : WordSpec({
             val storage = createStorage(dbExtension.db)
             storage.write(key, "someData")
 
-            storage.containsKey(key) shouldBe true
+            storage.contains(key) shouldBe true
         }
 
         "return false for an existing entry in a different namespace" {
@@ -158,7 +158,7 @@ class DatabaseStorageTest : WordSpec({
             otherStorage.write(key, data)
 
             val storage = createStorage(dbExtension.db)
-            storage.containsKey(key) shouldBe false
+            storage.contains(key) shouldBe false
         }
     }
 
@@ -170,7 +170,7 @@ class DatabaseStorageTest : WordSpec({
             storage.write(key, "Data to be deleted...")
 
             storage.delete(key) shouldBe true
-            storage.containsKey(key) shouldBe false
+            storage.contains(key) shouldBe false
         }
 
         "return false for a non-existing entry" {

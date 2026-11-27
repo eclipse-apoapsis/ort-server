@@ -185,14 +185,14 @@ class StorageTest : WordSpec({
         "return false for a non-existing key" {
             val storage = createStorage()
 
-            storage.containsKey(Key("anyKey")) shouldBe false
+            storage.contains(Key("anyKey")) shouldBe false
         }
 
         "handle exceptions thrown by the provider" {
             val storage = createStorage()
 
             shouldThrow<StorageException> {
-                storage.containsKey(Key(ERROR_KEY))
+                storage.contains(Key(ERROR_KEY))
             }
         }
 
@@ -202,7 +202,7 @@ class StorageTest : WordSpec({
             }
 
             shouldThrow<CancellationException> {
-                Storage(provider).containsKey(Key("anyKey"))
+                Storage(provider).contains(Key("anyKey"))
             }
         }
     }

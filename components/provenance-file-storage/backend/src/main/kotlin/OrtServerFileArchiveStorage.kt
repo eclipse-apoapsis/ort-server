@@ -44,11 +44,11 @@ class OrtServerFileArchiveStorage(
 
     override suspend fun getData(provenance: KnownProvenance): InputStream? {
         val key = provenance.toStorageKey()
-        return if (storage.containsKey(key)) storage.read(key).data else null
+        return if (storage.contains(key)) storage.read(key).data else null
     }
 
     override suspend fun hasData(provenance: KnownProvenance): Boolean =
-        storage.containsKey(provenance.toStorageKey())
+        storage.contains(provenance.toStorageKey())
 
     override suspend fun putData(provenance: KnownProvenance, data: InputStream, size: Long) {
         storage.write(provenance.toStorageKey(), data, size, CONTENT_TYPE)

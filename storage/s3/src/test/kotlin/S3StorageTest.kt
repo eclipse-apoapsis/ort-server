@@ -214,7 +214,7 @@ class S3StorageTest : WordSpec({
         "return false for a non existing object" {
             val storage = floci.createStorage()
 
-            storage.containsKey(Key("object-not-existing")) shouldBe false
+            storage.contains(Key("object-not-existing")) shouldBe false
         }
 
         "return true for an existing object" {
@@ -224,7 +224,7 @@ class S3StorageTest : WordSpec({
 
             storage.write(key, "test-data")
 
-            storage.containsKey(key) shouldBe true
+            storage.contains(key) shouldBe true
         }
 
         "add the key prefix if configured" {
@@ -241,14 +241,14 @@ class S3StorageTest : WordSpec({
 
             val storage = floci.createStorage(keyPrefix = "prefix")
 
-            storage.containsKey(key) shouldBe true
+            storage.contains(key) shouldBe true
         }
 
         "throw a StorageException if the request fails" {
             val storage = floci.createStorage(endpointUrl = UNREACHABLE_ENDPOINT_URL)
 
             shouldThrow<StorageException> {
-                storage.containsKey(Key("test-object"))
+                storage.contains(Key("test-object"))
             }
         }
     }
@@ -262,7 +262,7 @@ class S3StorageTest : WordSpec({
             storage.write(key, "test-data")
 
             storage.delete(key) shouldBe true
-            storage.containsKey(key) shouldBe false
+            storage.contains(key) shouldBe false
         }
 
         "return false for a non existing object" {
@@ -286,7 +286,7 @@ class S3StorageTest : WordSpec({
             val storage = floci.createStorage(keyPrefix = "prefix")
 
             storage.delete(key) shouldBe true
-            storage.containsKey(key) shouldBe false
+            storage.contains(key) shouldBe false
         }
 
         "throw a StorageException if the request fails" {

@@ -132,7 +132,7 @@ class AzureBlobStorageProviderTest : WordSpec({
         "return false for a non-existing object" {
             val storage = Storage(AzureBlobStorageProvider(containerClient))
 
-            storage.containsKey(Key("non-existing")) shouldBe false
+            storage.contains(Key("non-existing")) shouldBe false
         }
 
         "return true for an existing object" {
@@ -140,7 +140,7 @@ class AzureBlobStorageProviderTest : WordSpec({
 
             storage.write(Key("test"), "Hello, World!", "application/octet-stream")
 
-            storage.containsKey(Key("test")) shouldBe true
+            storage.contains(Key("test")) shouldBe true
         }
     }
 

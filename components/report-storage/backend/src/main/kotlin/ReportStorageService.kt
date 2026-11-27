@@ -49,7 +49,7 @@ class ReportStorageService(
      */
     suspend fun fetchReport(runId: Long, fileName: String): ReportDownloadData {
         val key = generateKey(runId, fileName)
-        if (!reportStorage.containsKey(key)) throw ReportNotFoundException(runId, fileName)
+        if (!reportStorage.contains(key)) throw ReportNotFoundException(runId, fileName)
 
         val entry = reportStorage.read(key)
 

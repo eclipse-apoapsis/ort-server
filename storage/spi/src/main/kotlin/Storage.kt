@@ -127,7 +127,7 @@ class Storage(
      * Return a flag whether the given [key] is contained in this storage. Throw a [StorageException] if this
      * operation fails.
      */
-    suspend fun containsKey(key: Key): Boolean = wrapException { contains(key) }
+    suspend fun contains(key: Key): Boolean = wrapException { contains(key) }
 
     /**
      * Delete the given [key] from this storage and return a flag whether it existed before. Throw a
