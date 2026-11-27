@@ -244,10 +244,13 @@ When upgrading the PostgreSQL version in the Docker Compose setup, the database 
 
    ```shell
    docker compose exec -T postgres pg_dump -Fc -U postgres -d ort_server -n public > keycloak.dump
-   docker compose exec -T postgres pg_dump -Fc -U postgres -d ort_server -n ort_server > ort-server.dump
+   docker compose exec -T postgres pg_dump -Fc -U postgres -d ort_server -n ort_server --large-objects > ort-server.dump
    ```
 
    The `-T` option is required, because a terminal attached to the command can corrupt the binary backup files.
+
+   The `--large-objects` option is required, because ORT Server stores files like reports, file archives, and file lists as large objects.
+   Large objects do not belong to a schema, so `pg_dump` leaves them out when the backup is limited to a schema with `-n`.
 
 4. Stop Docker Compose and delete the database volume:
 
@@ -268,7 +271,8 @@ When upgrading the PostgreSQL version in the Docker Compose setup, the database 
    ```
 
 7. Create the `ort_server` schema and the `pgcrypto` extension that the ORT Server database uses.
-   The backups do not contain them, because they are limited to single schemas.
+   The backups do not contain the extension, because they are limited to single schemas.
+   It must exist before the import, and it is installed into the `ort_server` schema, so the schema must be created first.
 
    ```shell
    docker compose exec -T postgres psql -U postgres -d ort_server -c "CREATE SCHEMA ort_server" -c "CREATE EXTENSION pgcrypto SCHEMA ort_server"
@@ -278,7 +282,16 @@ When upgrading the PostgreSQL version in the Docker Compose setup, the database 
 
    ```shell
    cat keycloak.dump | docker compose exec -T postgres pg_restore -U postgres -d ort_server -n public
-   cat ort-server.dump | docker compose exec -T postgres pg_restore -U postgres -d ort_server -n ort_server
+   cat ort-server.dump | docker compose exec -T postgres pg_restore -U postgres -d ort_server
+   ```
+
+   The ORT Server backup is imported without the `-n` option, because `pg_restore` would skip the large objects otherwise.
+   It reports an error that the schema `ort_server` already exists, which can be ignored, because the schema was created in the previous step.
+
+   To check that all large objects were imported, run the following command, which must print `0`:
+
+   ```shell
+   docker compose exec -T postgres psql -U postgres -d ort_server -Atc "SELECT count(*) FROM ort_server.storage s WHERE NOT EXISTS (SELECT 1 FROM pg_largeobject_metadata m WHERE m.oid = s.data)"
    ```
 
 9. Start all services:
