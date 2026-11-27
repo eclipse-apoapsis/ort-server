@@ -45,6 +45,7 @@ import {
   toProvenanceFilesQuery,
 } from './provenance-files-route';
 import { ProvenanceFilesTable } from './provenance-files-table';
+import { fileNameFromContentDisposition, saveFile } from './utils';
 
 type ProvenanceFilesPageProps<
   TFilesQueryKey extends QueryKey,
@@ -100,6 +101,23 @@ export const ProvenanceFilesPage = <
   // unhandled.
   const onDelete = (id: string) => deleteFile(id).catch(() => undefined);
 
+  // A failed download is reported here instead of with try/catch, because React Compiler does not support conditionals
+  // in try statements, and would skip the whole component.
+  const onDownload = async (id: string) => {
+    const response = await config.downloadFile(id).catch((error: unknown) => {
+      toastError(`Unable to download the ${thingName}.`, error);
+    });
+
+    if (response) {
+      saveFile(
+        response.data as Blob,
+        fileNameFromContentDisposition(
+          response.headers['content-disposition']
+        ) ?? config.defaultFileName
+      );
+    }
+  };
+
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // The refresh returns the new statistics, so they are stored directly instead of fetching them again. Only the files
@@ -144,6 +162,7 @@ export const ProvenanceFilesPage = <
           search={search}
           defaultPageSize={provenanceFilesDefaultPageSize}
           thingName={thingName}
+          onDownload={onDownload}
           onDelete={onDelete}
           onFilterChange={filterBy}
           setCurrentPageOptions={(currentPage) => ({

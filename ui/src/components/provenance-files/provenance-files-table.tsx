@@ -17,7 +17,7 @@
  * License-Filename: LICENSE
  */
 
-import { XCircle } from 'lucide-react';
+import { Download, XCircle } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 
 import { ProvenanceFile } from '@/api';
@@ -52,6 +52,8 @@ type ProvenanceFilesTableProps = {
   defaultPageSize: number;
   /** The human-readable name of a single file, used in the delete dialog. */
   thingName: string;
+  /** Download the file with the given ID. This should be a stable function to avoid recreating the columns. */
+  onDownload: (id: string) => Promise<unknown>;
   /** Delete the file with the given ID. This should be a stable function to avoid recreating the columns. */
   onDelete: (id: string) => Promise<unknown>;
   /** Apply the given filter to the table. */
@@ -65,6 +67,7 @@ const columnHelper = createAppColumnHelper<ProvenanceFile>();
 
 const createColumns = (
   thingName: string,
+  onDownload: (id: string) => Promise<unknown>,
   onDelete: (id: string) => Promise<unknown>
 ) =>
   columnHelper.columns([
@@ -119,9 +122,18 @@ const createColumns = (
       id: 'actions',
       header: () => <div className='text-right'>Actions</div>,
       enableSorting: false,
-      size: 80,
+      size: 100,
       cell: ({ row }) => (
-        <div className='flex justify-end'>
+        <div className='flex justify-end gap-1'>
+          <Button
+            size='sm'
+            variant='outline'
+            className='h-8 px-2'
+            onClick={() => onDownload(row.original.id)}
+          >
+            <span className='sr-only'>Download</span>
+            <Download size={16} />
+          </Button>
           <DeleteDialog
             thingName={thingName}
             description={
@@ -219,6 +231,7 @@ export const ProvenanceFilesTable = ({
   search,
   defaultPageSize,
   thingName,
+  onDownload,
   onDelete,
   onFilterChange,
   setCurrentPageOptions,
@@ -228,8 +241,8 @@ export const ProvenanceFilesTable = ({
   const pageIndex = search.page ? search.page - 1 : 0;
   const pageSize = search.pageSize ?? defaultPageSize;
   const columns = useMemo(
-    () => createColumns(thingName, onDelete),
-    [thingName, onDelete]
+    () => createColumns(thingName, onDownload, onDelete),
+    [thingName, onDownload, onDelete]
   );
 
   const table = useAppTable(

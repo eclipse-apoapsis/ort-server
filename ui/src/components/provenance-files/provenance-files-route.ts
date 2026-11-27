@@ -46,6 +46,12 @@ type GeneratedQueryOptions<
   TQueryKey extends QueryKey,
 > = UseSuspenseQueryOptions<TData, AxiosError<DefaultError>, TData, TQueryKey>;
 
+/** The relevant parts of the response of a download request. */
+export type DownloadResponse = {
+  data: unknown;
+  headers: Partial<Record<string, unknown>>;
+};
+
 /**
  * The configuration of a page to manage a type of stored provenance files, such as file archives or file lists. It
  * provides the texts of the page and the API functions for this type of files.
@@ -68,6 +74,10 @@ export type ProvenanceFilesConfig<
   ) => GeneratedQueryOptions<PagedResponseProvenanceFile, TFilesQueryKey>;
   /** The key that matches the queries for all pages of files, to invalidate them when the files have changed. */
   filesQueryKey: QueryKey;
+  /** The default name of a downloaded file, used if the server does not suggest a name. */
+  defaultFileName: string;
+  /** Download the file with the given ID as a Blob, together with the headers of the response. */
+  downloadFile: (id: string) => Promise<DownloadResponse>;
   /** Delete the file with the given ID. */
   deleteFile: (id: string) => Promise<unknown>;
   /** Return the options of the query for the statistics about all files. */
