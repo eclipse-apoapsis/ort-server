@@ -133,7 +133,7 @@ class Storage(
      * Delete the given [key] from this storage and return a flag whether it existed before. Throw a
      * [StorageException] if this operation fails.
      */
-    suspend fun delete(key: Key): Boolean = wrapException { provider.delete(key) }
+    suspend fun delete(key: Key): Boolean = wrapException { delete(key) }
 
     /**
      * Return a [Flow] with information about all entries in this storage whose keys start with the given [prefix].
