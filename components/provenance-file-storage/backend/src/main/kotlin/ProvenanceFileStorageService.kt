@@ -31,6 +31,7 @@ import org.eclipse.apoapsis.ortserver.model.util.OrderDirection
 import org.eclipse.apoapsis.ortserver.model.util.OrderField
 import org.eclipse.apoapsis.ortserver.storage.Key
 import org.eclipse.apoapsis.ortserver.storage.Storage
+import org.eclipse.apoapsis.ortserver.storage.StorageEntry
 import org.eclipse.apoapsis.ortserver.storage.StorageEntryInfo
 
 /** An enumeration of the types of files stored per provenance. */
@@ -92,6 +93,13 @@ class ProvenanceFileStorageService(
      */
     suspend fun statistics(type: ProvenanceFileType, refresh: Boolean = false): ProvenanceFileStatistics =
         caches.getValue(type).get(refresh).statistics
+
+    /**
+     * Return the [StorageEntry] for the file of the given [type] that is stored under the given [key], or *null* if
+     * the file does not exist. The caller is responsible for closing the returned entry.
+     */
+    suspend fun read(type: ProvenanceFileType, key: Key): StorageEntry? =
+        storageFor(type).takeIf { it.containsKey(key) }?.read(key)
 
     /**
      * Delete the file of the given [type] that is stored under the given [key]. Return *true* if the file existed and

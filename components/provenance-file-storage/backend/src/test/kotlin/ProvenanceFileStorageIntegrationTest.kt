@@ -48,13 +48,16 @@ abstract class ProvenanceFileStorageIntegrationTest(
 
     /** Add the given [entries] to the storage for files of the given [type]. */
     internal fun addEntries(type: ProvenanceFileType, vararg entries: StorageEntryInfo) {
-        val provider = when (type) {
+        val provider = providerFor(type)
+        entries.forEach { provider.entries[it.key] = it }
+    }
+
+    /** Return the [FakeStorageProvider] for files of the given [type]. */
+    internal fun providerFor(type: ProvenanceFileType): FakeStorageProvider =
+        when (type) {
             ProvenanceFileType.FILE_ARCHIVE -> fileArchiveProvider
             ProvenanceFileType.FILE_LIST -> fileListProvider
         }
-
-        entries.forEach { provider.entries[it.key] = it }
-    }
 
     fun provenanceFileStorageTestApplication(
         block: suspend ApplicationTestBuilder.(client: HttpClient) -> Unit

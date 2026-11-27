@@ -55,6 +55,17 @@ class ProvenanceFileStorageAuthorizationTest : AbstractAuthorizationTest({
             }
         }
 
+        "DownloadProvenanceFile for '${type.pathSegment}'" should {
+            "require the superuser role" {
+                requestShouldRequireSuperuser(
+                    routes = { provenanceFileStorageRoutes(service) },
+                    successStatus = HttpStatusCode.NotFound
+                ) {
+                    get("/admin/${type.pathSegment}/${Key("key").toProvenanceFileId()}/download")
+                }
+            }
+        }
+
         "DeleteProvenanceFile for '${type.pathSegment}'" should {
             "require the superuser role" {
                 requestShouldRequireSuperuser(

@@ -45,12 +45,7 @@ class DeleteProvenanceFileIntegrationTest : ProvenanceFileStorageIntegrationTest
                     client.delete("/admin/${type.pathSegment}/${repoA.key.toProvenanceFileId()}") shouldHaveStatus
                             HttpStatusCode.NoContent
 
-                    val provider = when (type) {
-                        ProvenanceFileType.FILE_ARCHIVE -> fileArchiveProvider
-                        ProvenanceFileType.FILE_LIST -> fileListProvider
-                    }
-
-                    provider.entries.keys should containExactly(repoB.key)
+                    providerFor(type).entries.keys should containExactly(repoB.key)
                 }
             }
         }

@@ -22,6 +22,7 @@ package org.eclipse.apoapsis.ortserver.components.provenancefilestorage
 import io.ktor.server.routing.Route
 
 import org.eclipse.apoapsis.ortserver.components.provenancefilestorage.routes.deleteProvenanceFile
+import org.eclipse.apoapsis.ortserver.components.provenancefilestorage.routes.downloadProvenanceFile
 import org.eclipse.apoapsis.ortserver.components.provenancefilestorage.routes.getProvenanceFileStatistics
 import org.eclipse.apoapsis.ortserver.components.provenancefilestorage.routes.getProvenanceFiles
 
@@ -30,6 +31,7 @@ fun Route.provenanceFileStorageRoutes(provenanceFileStorageService: ProvenanceFi
     ProvenanceFileType.entries.forEach { type ->
         getProvenanceFiles(provenanceFileStorageService, type)
         getProvenanceFileStatistics(provenanceFileStorageService, type)
+        downloadProvenanceFile(provenanceFileStorageService, type)
         deleteProvenanceFile(provenanceFileStorageService, type)
     }
 }
