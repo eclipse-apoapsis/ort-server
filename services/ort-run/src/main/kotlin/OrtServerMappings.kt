@@ -56,6 +56,9 @@ import org.eclipse.apoapsis.ortserver.model.runs.VcsInfo
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorConfiguration
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorRun
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.Criticality
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.HealthMetric
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.HealthSummary
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.Vulnerability
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.VulnerabilityReference
 import org.eclipse.apoapsis.ortserver.model.runs.repository.Curations
@@ -115,12 +118,15 @@ import org.ossreviewtoolkit.model.AnalyzerResult as OrtAnalyzerResult
 import org.ossreviewtoolkit.model.AnalyzerRun as OrtAnalyzerRun
 import org.ossreviewtoolkit.model.ArtifactProvenance as OrtArtifactProvenance
 import org.ossreviewtoolkit.model.CopyrightFinding as OrtCopyrightFinding
+import org.ossreviewtoolkit.model.Criticality as OrtCriticality
 import org.ossreviewtoolkit.model.DependencyGraph as OrtDependencyGraph
 import org.ossreviewtoolkit.model.DependencyGraphEdge as OrtDependencyGraphEdge
 import org.ossreviewtoolkit.model.DependencyGraphNode as OrtDependencyGraphNode
 import org.ossreviewtoolkit.model.EvaluatorRun as OrtEvaluatorRun
 import org.ossreviewtoolkit.model.Hash as OrtHash
 import org.ossreviewtoolkit.model.HashAlgorithm.Companion as OrtHashAlgorithm
+import org.ossreviewtoolkit.model.HealthMetric as OrtHealthMetric
+import org.ossreviewtoolkit.model.HealthSummary as OrtHealthSummary
 import org.ossreviewtoolkit.model.Identifier as OrtIdentifier
 import org.ossreviewtoolkit.model.Issue as OrtIssue
 import org.ossreviewtoolkit.model.KnownProvenance as OrtKnownProvenance
@@ -216,7 +222,9 @@ fun AdvisorResult.mapToOrt() =
             endTime = endTime.toJavaInstant(),
             issues = issues.map(Issue::mapToOrt)
         ),
-        vulnerabilities = vulnerabilities.map(Vulnerability::mapToOrt)
+        vulnerabilities = vulnerabilities.map(Vulnerability::mapToOrt),
+        healthMetrics = healthMetrics.map(HealthMetric::mapToOrt),
+        healthSummary = healthSummary?.mapToOrt()
     )
 
 fun AdvisorRun.mapToOrt() =
@@ -263,6 +271,13 @@ private fun Collection<Issue>.mapToOrt(): Map<OrtIdentifier, List<OrtIssue>> =
 fun ArtifactProvenance.mapToOrt() = OrtArtifactProvenance(sourceArtifact = sourceArtifact.mapToOrt())
 
 fun CopyrightFinding.mapToOrt() = OrtCopyrightFinding(statement = statement, location = location.mapToOrt())
+
+fun Criticality.mapToOrt() = when (this) {
+    Criticality.LOW -> OrtCriticality.LOW
+    Criticality.MEDIUM -> OrtCriticality.MEDIUM
+    Criticality.HIGH -> OrtCriticality.HIGH
+    Criticality.CRITICAL -> OrtCriticality.CRITICAL
+}
 
 fun Curations.mapToOrt() = OrtCurations(
     packages = packages.map(PackageCuration::mapToOrt),
@@ -311,6 +326,29 @@ fun Excludes.mapToOrt() = OrtExcludes(
     paths = paths.map(PathExclude::mapToOrt),
     scopes = scopes.map(ScopeExclude::mapToOrt)
 )
+
+fun HealthMetric.mapToOrt() =
+    OrtHealthMetric(
+        name = name,
+        documentation = documentation,
+        documentationLink = documentationLink?.let(URI::create),
+        minValue = minValue,
+        maxValue = maxValue,
+        higherIsBetter = higherIsBetter,
+        value = value,
+        referenceValue = referenceValue,
+        criticality = criticality?.mapToOrt(),
+        reason = reason,
+        details = details
+    )
+
+fun HealthSummary.mapToOrt() =
+    OrtHealthSummary(
+        overallScore = overallScore?.mapToOrt(),
+        analyzedAt = analyzedAt?.toJavaInstant(),
+        analyzedRevision = analyzedRevision,
+        toolVersion = toolVersion
+    )
 
 fun Identifier.mapToOrt() = OrtIdentifier(type = type, namespace = namespace, name = name, version = version)
 

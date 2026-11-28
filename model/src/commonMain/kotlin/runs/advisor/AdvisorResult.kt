@@ -28,5 +28,11 @@ data class AdvisorResult(
     val startTime: Instant,
     val endTime: Instant,
     val issues: List<Issue>,
-    val vulnerabilities: List<Vulnerability>
+    val vulnerabilities: List<Vulnerability>,
+
+    /** The project health metrics that the advisor reported for the package. */
+    val healthMetrics: List<HealthMetric> = emptyList(),
+
+    /** The summary of the health of the package as a whole, or null if the advisor did not report one. */
+    val healthSummary: HealthSummary? = null
 )

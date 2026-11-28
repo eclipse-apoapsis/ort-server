@@ -22,6 +22,8 @@ package org.eclipse.apoapsis.ortserver.dao.repositories.advisorrun
 import org.eclipse.apoapsis.ortserver.dao.utils.transformToDatabasePrecision
 import org.eclipse.apoapsis.ortserver.model.runs.Issue
 import org.eclipse.apoapsis.ortserver.model.runs.advisor.AdvisorResult
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.HealthMetric
+import org.eclipse.apoapsis.ortserver.model.runs.advisor.HealthSummary
 
 import org.jetbrains.exposed.v1.core.dao.id.EntityID
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
@@ -49,12 +51,18 @@ class AdvisorResultDao(id: EntityID<Long>) : LongEntity(id) {
 
     var vulnerabilities by VulnerabilityDao via AdvisorResultsVulnerabilitiesTable
 
-    fun mapToModel(identifierIssues: List<Issue>) = AdvisorResult(
+    fun mapToModel(
+        identifierIssues: List<Issue>,
+        healthMetrics: List<HealthMetric>,
+        healthSummary: HealthSummary?
+    ) = AdvisorResult(
         advisorName = advisorName,
         startTime = startTime,
         endTime = endTime,
         issues = filterResultIssues(identifierIssues),
-        vulnerabilities = vulnerabilities.map(VulnerabilityDao::mapToModel)
+        vulnerabilities = vulnerabilities.map(VulnerabilityDao::mapToModel),
+        healthMetrics = healthMetrics,
+        healthSummary = healthSummary
     )
 
     /**
